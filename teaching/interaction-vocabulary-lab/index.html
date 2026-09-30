@@ -1,0 +1,1671 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>互動設計關鍵字實驗室｜互動式參考書</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.9.4/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+
+  <style>
+    :root{
+      --sidebar-w: 300px;
+      --ink:#24324a;
+      --muted:#6f7b91;
+      --line:#dbe5f3;
+      --bg:#f7fbff;
+      --surface:#ffffff;
+      --primary:#4f7cff;
+      --primary-soft:#eaf0ff;
+      --secondary:#ff9f68;
+      --secondary-soft:#fff0e6;
+      --mint:#54c6a2;
+      --mint-soft:#e7f8f2;
+      --yellow:#ffd66b;
+      --shadow:0 10px 30px rgba(75,105,160,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMac系統Font, "Segoe UI", sans-serif;
+      color:var(--ink);
+      background:var(--bg);
+      overflow:hidden;
+    }
+    .app{
+      height:100vh;
+      display:grid;
+      grid-template-columns:var(--sidebar-w) 1fr;
+    }
+    .sidebar{
+      border-right:1px solid var(--line);
+      background:#f1f6ff;
+      padding:18px 14px;
+      overflow:auto;
+    }
+    .brand{
+      font-weight:800;
+      letter-spacing:-.02em;
+      font-size:1.1rem;
+      margin-bottom:4px;
+    }
+    .brand-sub{
+      font-size:.78rem;
+      color:var(--muted);
+      margin-bottom:16px;
+    }
+    .search-wrap{
+      position:sticky;
+      top:0;
+      background:#f1f6ff;
+      padding-bottom:10px;
+      z-index:5;
+    }
+    .search{
+      border-radius:999px;
+      padding:.65rem .85rem;
+      font-size:.9rem;
+    }
+    .group-title{
+      margin:18px 8px 7px;
+      font-size:.68rem;
+      color:#8b8f96;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-weight:700;
+    }
+    .nav-item-btn{
+      width:100%;
+      border:0;
+      background:transparent;
+      padding:9px 10px;
+      border-radius:10px;
+      text-align:left;
+      font-size:.9rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+    }
+    .nav-item-btn:hover{background:#e3ebff}
+    .nav-item-btn.active{
+      background:var(--primary);
+      color:#fff;
+    }
+    .nav-item-btn .tag{
+      font-size:.64rem;
+      opacity:.55;
+    }
+
+    .main{
+      overflow:auto;
+      min-width:0;
+      background:#fff;
+    }
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:10;
+      height:64px;
+      border-bottom:1px solid var(--line);
+      background:rgba(255,255,255,.96);
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 28px;
+    }
+    .topbar .crumb{
+      font-size:.8rem;
+      color:var(--muted);
+    }
+    .content{
+      width:min(1100px,calc(100% - 48px));
+      margin:0 auto;
+      padding:34px 0 80px;
+    }
+    .hero{
+      margin-bottom:26px;
+    }
+    .eyebrow{
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#70757d;
+      margin-bottom:8px;
+    }
+    .title{
+      font-size:clamp(2rem,5vw,4.7rem);
+      line-height:.95;
+      letter-spacing:-.055em;
+      font-weight:850;
+      margin:0 0 14px;
+    }
+    .lead{
+      max-width:780px;
+      font-size:1.05rem;
+      color:#5f646b;
+      line-height:1.7;
+    }
+    .keyword-pill{
+      display:inline-flex;
+      align-items:center;
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:.35rem .65rem;
+      margin:0 .35rem .35rem 0;
+      font-size:.75rem;
+      background:var(--primary-soft);
+      border-color:#cbd8ff;
+      color:#3557b7;
+    }
+
+    .demo-card,.prompt-card,.notes-card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--bg);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      margin-bottom:18px;
+    }
+    .card-head{
+      padding:14px 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      background:#f6f9ff;
+    }
+    .card-head strong{
+      font-size:.9rem;
+    }
+    .card-bodyx{
+      padding:24px;
+    }
+    .demo-stage{
+      min-height:290px;
+      border-radius:14px;
+      border:1px dashed #cfd3d8;
+      background:linear-gradient(135deg,#ffffff,#f2f7ff 55%,#fff7ef);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      position:relative;
+      overflow:hidden;
+    }
+    .prompt-box{
+      width:100%;
+      min-height:130px;
+      border:0;
+      outline:0;
+      resize:vertical;
+      font-family: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      font-size:.88rem;
+      line-height:1.65;
+      background:#26344f;
+      color:#f8fbff;
+      padding:18px;
+      border-radius:12px;
+    }
+    .copy-btn{
+      border-radius:999px;
+    }
+    .tiny{
+      font-size:.75rem;
+      color:var(--muted);
+    }
+    .demo-label{
+      position:absolute;
+      left:14px;
+      top:12px;
+      font-size:.7rem;
+      color:#9ca1a8;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    /* Demo primitives */
+    .box{
+      width:110px;height:110px;
+      border-radius:18px;
+      background:var(--primary);
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      user-select:none;
+      cursor:pointer;
+    }
+    .ghost-zone{
+      width:180px;height:140px;
+      border:2px dashed #bbb;
+      border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      color:#888;
+      transition:.2s;
+    }
+    .ghost-zone.hot{border-color:#111;background:#f0f0f0;color:#111}
+    .draggable{
+      touch-action:none;
+      cursor:grab;
+      position:relative;
+      z-index:2;
+    }
+    .draggable:active{cursor:grabbing}
+    .resize-box{
+      width:180px;height:120px;resize:both;overflow:auto;
+      border:2px solid #111;border-radius:16px;padding:14px;
+      background:white;
+    }
+    .sortable-list{width:min(100%,380px);margin:0;padding:0;list-style:none}
+    .sortable-list li{
+      padding:12px 14px;border:1px solid var(--line);background:white;
+      margin-bottom:8px;border-radius:12px;cursor:grab;
+    }
+    .selected-demo .selectable-item{
+      padding:12px 14px;border:1px solid var(--line);border-radius:12px;
+      margin:5px;display:inline-block;cursor:pointer;
+    }
+    .selected-demo .selectable-item.selected{background:var(--primary);color:#fff}
+    .hover-card{
+      width:220px;height:140px;border-radius:18px;border:1px solid var(--line);
+      display:flex;align-items:center;justify-content:center;
+      transition:.25s;background:white;
+    }
+    .hover-card:hover{
+      transform:translateY(-8px) scale(1.03);
+      box-shadow:0 16px 34px rgba(0,0,0,.12);
+    }
+    .scroll-box{
+      height:210px;overflow:auto;border:1px solid var(--line);
+      border-radius:14px;padding:14px;width:min(100%,520px);background:white;
+    }
+    .scroll-block{
+      height:110px;border-radius:12px;background:#f1f3f5;
+      margin-bottom:12px;display:flex;align-items:center;justify-content:center;
+    }
+    .kbd-demo{
+      width:min(100%,520px);
+    }
+    .kbd-output{
+      min-height:80px;padding:16px;border:1px solid var(--line);border-radius:12px;
+      margin-top:12px;background:#f6f9ff;
+    }
+    .meter{
+      width:min(100%,520px);
+    }
+    .range-label{font-size:.8rem;color:var(--muted)}
+    .toast-host{
+      position:absolute;right:18px;bottom:18px;z-index:3;
+    }
+    .carousel-simple{
+      width:min(100%,560px);
+    }
+    .carousel-slide{
+      height:230px;border-radius:16px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;font-weight:800;
+      background:#f2f3f5;
+    }
+    .tab-panels .nav-link{color:#111}
+    .tab-panels .nav-link.active{font-weight:700}
+    .tooltip-sample{
+      border-bottom:1px dotted #111;cursor:help;
+    }
+    .fake-sidebar{
+      width:100%;height:240px;position:relative;overflow:hidden;
+      border:1px solid var(--line);border-radius:14px;background:#f6f9ff;
+    }
+    .fake-panel{
+      position:absolute;top:0;bottom:0;left:0;width:220px;
+      background:var(--primary);color:#fff;padding:18px;transform:translateX(-100%);
+      transition:.28s ease;
+    }
+    .fake-panel.open{transform:translateX(0)}
+    .fake-content{padding:24px 24px 24px 260px;transition:.28s}
+    .progress{height:20px}
+    .p5-wrap,.three-wrap{
+      width:min(100%,720px);
+      height:360px;
+      border-radius:16px;
+      overflow:hidden;
+      background:#f3f4f6;
+      position:relative;
+    }
+    .tool-card{
+      width:min(100%,700px);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:22px;
+      background:white;
+    }
+    .tool-card h3{margin-top:0}
+    .tool-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+    }
+    .tool-chip{
+      padding:10px 12px;border:1px solid var(--line);
+      border-radius:12px;background:#f6f9ff;font-size:.86rem;
+    }
+    .mini-steps{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      margin:10px 0 18px;
+    }
+    .mini-step{
+      padding:.46rem .76rem;border-radius:999px;
+      background:var(--secondary-soft);font-size:.78rem;color:#9b562f;font-weight:700;
+    }
+    .arrow{color:#adb1b6}
+    @media (max-width: 880px){
+      body{overflow:auto}
+      .app{grid-template-columns:1fr;height:auto}
+      .sidebar{
+        position:sticky;top:0;z-index:20;
+        border-right:0;border-bottom:1px solid var(--line);
+        max-height:42vh;
+      }
+      .main{overflow:visible}
+      .topbar{top:42vh}
+      .content{width:min(100% - 28px,1100px)}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">互動設計關鍵字實驗室</div>
+    <div class="brand-sub">從人的操作，找到可以交給 AI 的互動語彙</div>
+
+    <div class="search-wrap">
+      <input id="searchInput" class="form-control search" placeholder="搜尋關鍵字…" />
+    </div>
+
+    <div id="nav"></div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="crumb" id="crumb">互動設計基礎</div>
+      </div>
+      <div class="tiny">操作 → 行為 → 元件 → 工具</div>
+    </div>
+
+    <div class="content">
+      <section id="hero" class="hero"></section>
+
+      <div class="mini-steps">
+        <span class="mini-step">1. 人的操作</span><span class="arrow">→</span>
+        <span class="mini-step">2. 互動行為</span><span class="arrow">→</span>
+        <span class="mini-step">3. 介面元件</span><span class="arrow">→</span>
+        <span class="mini-step">4. 可選工具</span>
+      </div>
+
+      <section class="demo-card">
+        <div class="card-head">
+          <strong>操作示範</strong>
+          <span class="tiny" id="techBadge"></span>
+        </div>
+        <div class="card-bodyx">
+          <div id="demoStage" class="demo-stage">
+            <div class="demo-label">請操作看看</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prompt-card">
+        <div class="card-head">
+          <strong>填空式 Prompt</strong>
+          <button id="copyPrompt" class="btn btn-sm btn-dark copy-btn">複製</button>
+        </div>
+        <div class="card-bodyx">
+          <div class="tiny mb-2">把中括號內容換成你的條件，再交給 AI。</div>
+          <textarea id="promptBox" class="prompt-box" spellcheck="false"></textarea>
+        </div>
+      </section>
+
+      <section class="notes-card">
+        <div class="card-head"><strong>觀察重點</strong></div>
+        <div class="card-bodyx" id="notes"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+const ITEMS = [
+  // hidden:true = 暫時隱藏於左側選單，但保留資料，之後可重新開啟。
+  /* HUMAN INPUT */
+  {group:"基本操作", id:"tap", title:"Tap / Click", tag:"操作",
+   desc:"最基本的觸發：使用者點一下物件，系統執行一個明確動作。",
+   keywords:["tap","click","button","activate"],
+   tech:"HTML + JavaScript",
+   prompt:"當使用者 [點擊／輕觸] [物件名稱] 時，請讓 [目標物件] 執行 [顯示／隱藏／切換狀態／移動到某處]，並以 [顏色／文字／動畫] 提供回饋。",
+   notes:"重點不是「有按鈕」，而是要說清楚：誰被點、點了之後什麼改變、使用者怎麼知道系統有收到。",
+   demo:"tap"},
+  {group:"基本操作", id:"double-click", title:"Double Click / Double Tap", tag:"操作",
+   desc:"短時間內連續觸發兩次，適合用在放大、快速開啟或特殊模式。",
+   keywords:["double click","double tap","zoom"],
+   tech:"HTML + JavaScript",
+   prompt:"當使用者在 [物件名稱] 上快速 [雙擊／雙點] 時，請將它 [放大／進入編輯模式／切換顯示內容]；再次雙擊時 [恢復原狀]。",
+   notes:"雙擊不適合拿來當唯一操作入口，因為它的可見性較低；可作為次要互動。",
+   demo:"double"},
+  {group:"基本操作", id:"long-press", title:"Long Press / Press and Hold", tag:"操作",
+   desc:"按住一段時間後才觸發，適合叫出次要操作或進入特殊模式。",
+   keywords:["long press","hold","press and hold"],
+   tech:"JavaScript",
+   prompt:"當使用者按住 [物件名稱] 超過 [毫秒數，例如 700ms] 時，請觸發 [功能]；按住期間顯示 [進度／縮放／顏色變化] 作為回饋。",
+   notes:"這是一個時間型觸發。務必讓使用者在等待期間看得到回饋。",
+   demo:"hold"},
+  {group:"基本操作", id:"drag", title:"Touch / Click + 拖曳", tag:"操作",
+   desc:"按住不放並移動。它是很多創意互動的基本骨架。",
+   keywords:["drag","touch drag","mouse drag"],
+   tech:"JavaScript",
+   prompt:"讓 [物件名稱] 可以被拖曳。拖曳開始時 [回饋]，拖曳過程中讓物件 [跟隨游標／手指]，放開時 [停在原位／回彈／吸附到最近位置]。",
+   notes:"拖曳 可以拆成 Press → Move → Release。Storyboard 畫這三格，AI 通常更容易理解。",
+   demo:"drag"},
+  {group:"基本操作", id:"swipe", title:"Swipe", tag:"操作", hidden:true,
+   desc:"帶有方向性的快速拖移，常見於卡片切換、圖片瀏覽、刪除手勢。",
+   keywords:["swipe","gesture","left","right"],
+   tech:"JavaScript",
+   prompt:"當使用者在 [卡片／圖片] 上向 [左／右／上／下] swipe 超過 [距離] 時，請執行 [下一張／刪除／切換內容]，並加入 [滑出／回彈] 動畫。",
+   notes:"Swipe 的關鍵是方向與距離門檻，而不是單純 drag。",
+   demo:"swipe"},
+  {group:"基本操作", id:"pinch", title:"Pinch / Spread", tag:"操作", hidden:true,
+   desc:"雙指縮放手勢。是否能完整控制，會依瀏覽器與裝置機制而異。",
+   keywords:["pinch","spread","zoom","mobile gesture"],
+   tech:"Device / Browser dependent",
+   prompt:"如果裝置支援多點觸控，請讓使用者以雙指 [pinch / spread] 控制 [物件] 的縮放，限制縮放範圍在 [最小值] 到 [最大值]。",
+   notes:"這個互動部分依賴裝置與瀏覽器機制。課堂上可先把它視為 optional。",
+   demo:"pinch"},
+  {group:"基本操作", id:"hover", title:"Hover", tag:"操作",
+   desc:"滑鼠停留在物件上時出現狀態變化，適合 preview、提示與強調。",
+   keywords:["hover","mouseover","preview"],
+   tech:"CSS / JavaScript",
+   prompt:"當滑鼠 hover 在 [物件名稱] 上時，請讓它 [放大／浮起／顯示資訊／改變顏色]；滑鼠離開後恢復原狀。",
+   notes:"Hover 在觸控裝置上不可靠，所以不要把必要資訊只藏在 hover 裡。",
+   demo:"hover"},
+  {group:"基本操作", id:"scroll", title:"Scroll", tag:"操作",
+   desc:"捲動本身也能作為觸發條件，例如 reveal、parallax 或載入更多內容。",
+   keywords:["scroll","scroll trigger","reveal"],
+   tech:"CSS + JavaScript",
+   prompt:"當使用者捲動到 [指定區塊／百分比] 時，觸發 [淡入／位移／計數／載入下一段內容]，並保持動畫 [快／慢／平滑]。",
+   notes:"Scroll 是位置型觸發：何時進入視窗、進入多少，都可以成為條件。",
+   demo:"scroll"},
+  {group:"基本操作", id:"keyboard", title:"Keyboard Input", tag:"操作",
+   desc:"使用按鍵、方向鍵、Enter、Space 等觸發互動。",
+   keywords:["keyboard","keypress","enter","arrow keys"],
+   tech:"JavaScript",
+   prompt:"當使用者按下 [按鍵，例如 Enter / ArrowLeft / Space] 時，讓 [物件] 執行 [動作]，並顯示 [視覺回饋]。",
+   notes:"鍵盤互動是可用性與無障礙的重要部分，也能用於遊戲或創意控制。",
+   demo:"keyboard"},
+  {group:"基本操作", id:"text-input", title:"Text Input", tag:"操作",
+   desc:"讓使用者輸入文字、數字或關鍵字，再觸發搜尋、回應或內容生成。",
+   keywords:["text input","input","search","type"],
+   tech:"HTML + JavaScript",
+   prompt:"建立一個 [文字／數字] 輸入欄位。使用者輸入 [內容類型] 後，按下 [Enter／按鈕]，請將輸入值用來 [搜尋／計算／更新畫面內容]。",
+   notes:"Input 不只是表單，也可以成為創意互動的變數來源。",
+   demo:"input"},
+
+  /* BEHAVIOR */
+  {group:"互動行為", id:"draggable", title:"Draggable", tag:"行為",
+   desc:"物件可以被抓起來拖動。",
+   keywords:["draggable","move object"],
+   tech:"jQuery + JavaScript",
+   prompt:"讓 [物件名稱] 成為 draggable。拖曳時 [跟隨游標／限制在指定區域]，放開後 [保留位置／回到原位]。",
+   notes:"把「可以拖」跟「拖到哪裡後發生什麼」分開描述。",
+   demo:"drag"},
+  {group:"互動行為", id:"droppable", title:"Droppable", tag:"行為",
+   desc:"某個區域可以接收被拖進來的物件。",
+   keywords:["droppable","drop zone","drag and drop"],
+   tech:"JavaScript",
+   prompt:"讓 [物件 A] 可以拖曳，讓 [區域 B] 成為 drop zone。當 A 被放進 B 時，請 [改變狀態／加入清單／消失／播放動畫]。",
+   notes:"Droppable 是 拖曳 + Release + Target 的組合。",
+   demo:"drop"},
+  {group:"互動行為", id:"resizable", title:"Resizable", tag:"行為",
+   desc:"使用者可以改變物件寬度、高度或兩者。",
+   keywords:["resizable","resize","handle"],
+   tech:"CSS / JavaScript",
+   prompt:"讓 [面板／圖片／區塊] 可以由 [右下角／邊緣] 拖曳改變大小，限制尺寸在 [最小] 到 [最大]。",
+   notes:"如果 resize 是核心操作，要讓 handle 看起來真的「可拉」。",
+   demo:"resize"},
+  {group:"互動行為", id:"selectable", title:"Selectable", tag:"行為",
+   desc:"物件可以被單選或多選。",
+   keywords:["selectable","select","multi-select"],
+   tech:"JavaScript",
+   prompt:"讓 [一組物件] 可以被選取。點擊後使用 [外框／背景色／勾選符號] 表示 selected state；設定為 [單選／多選]。",
+   notes:"Selected 是一種 state，回饋要清楚。",
+   demo:"select"},
+  {group:"互動行為", id:"sortable", title:"Sortable", tag:"行為",
+   desc:"直接拖曳項目，改變清單中的實際排列順序。",
+   keywords:["sortable","reorder"],
+   tech:"JavaScript",
+   prompt:"讓 [清單／卡片] 可以直接拖曳重新排序。拖曳某一項時，其他項目即時讓位；放開後保留新的排列順序。",
+   notes:"重點是「位置本身會改變」。學生要直接看出拖曳前後的位置差異，而不是只看到物件跟著滑鼠移動。",
+   demo:"sort"},
+  {group:"互動行為", id:"toggle", title:"Toggle", tag:"行為",
+   desc:"在兩個狀態之間切換，例如開/關、顯示/隱藏。",
+   keywords:["toggle","on off","show hide"],
+   tech:"HTML + JavaScript",
+   prompt:"讓 [控制元件] 在 [狀態 A] 與 [狀態 B] 之間 toggle。每次切換時，同步更新 [視覺樣式／文字／內容]。",
+   notes:"Toggle 的關鍵是兩個 state 都要被明確定義。",
+   demo:"toggle"},
+  {group:"互動行為", id:"snap", title:"Snap into Place", tag:"行為",
+   desc:"拖曳後自動吸附到最近的合法位置。",
+   keywords:["snap","snap to grid","magnetic"],
+   tech:"JavaScript",
+   prompt:"讓 [物件] 可拖曳，放開時自動吸附到最近的 [格線／目標點／插槽]；吸附距離為 [數值]。",
+   notes:"Snap 可以讓自由拖曳變得更有秩序，也很適合拼圖或磁吸式介面。",
+   demo:"snap"},
+
+  /* PATTERNS */
+  {group:"介面元件", id:"button", title:"Button", tag:"元件",
+   desc:"最基本的明確觸發元件。",
+   keywords:["button","cta","click"],
+   tech:"Bootstrap",
+   prompt:"建立一個 [主要／次要] Button，文字為「[按鈕文字]」。點擊後執行 [功能]，並以 [變色／動畫／文字] 顯示回饋。",
+   notes:"按鈕應該讓人看得出可以按，並且文字要表示動作。",
+   demo:"button"},
+  {group:"介面元件", id:"tabs", title:"Tabs", tag:"元件",
+   desc:"用一排標籤切換同一區域中的不同內容。",
+   keywords:["tabs","tab panel","switch content"],
+   tech:"Bootstrap",
+   prompt:"建立 [數量] 個 Tabs，名稱為 [Tab A / Tab B / Tab C]。切換 Tab 時只顯示對應內容，並清楚標示目前 active 的 Tab。",
+   notes:"Tabs 適合平行層級內容，不適合拿來表示線性步驟。",
+   demo:"tabs"},
+  {group:"介面元件", id:"accordion", title:"Accordion", tag:"元件",
+   desc:"點擊標題後展開或收合內容。",
+   keywords:["accordion","collapse","expand"],
+   tech:"Bootstrap",
+   prompt:"建立一組 Accordion，每一項標題為 [標題]、內容為 [內容]。設定為 [一次只開一個／可同時開多個]。",
+   notes:"適合 FAQ、分段資訊、需要控制閱讀密度的內容。",
+   demo:"accordion"},
+  {group:"介面元件", id:"carousel", title:"Carousel / Image Slider", tag:"元件",
+   desc:"在同一區域中切換圖片或內容；常見控制包括左右箭頭、圓點指示與進度軸。",
+   keywords:["carousel","image slider","slides"],
+   tech:"Bootstrap",
+   prompt:"建立一個包含 [數量] 張內容的 Carousel。切換方式使用 [左右箭頭／圓點指示 dots／下方進度軸 progress bar／自動播放]；目前所在位置要以 [圓點高亮／進度比例／文字編號] 顯示；每張內容 [是否自動播放、停留秒數]。",
+   notes:"Carousel 不只有左右箭頭。可以用 dots 表示目前是第幾張，也可以用 progress bar 表示整體瀏覽進度。這些都是同一個 Pattern 的不同回饋方式。",
+   demo:"carousel"},
+  {group:"介面元件", id:"sidebar", title:"Sidebar / Drawer / Offcanvas", tag:"元件",
+   desc:"從側邊滑入或常駐的導覽與工具區。",
+   keywords:["sidebar","drawer","offcanvas"],
+   tech:"Bootstrap / CSS",
+   prompt:"建立一個從 [左／右] 滑出的 Sidebar。由 [menu button] 觸發，寬度為 [數值]，內容包含 [項目]，點擊外側時 [關閉／保持]。",
+   notes:"Sidebar 可以是常駐，也可以是 offcanvas；要把這兩種型態說清楚。",
+   demo:"sidebar"},
+  {group:"介面元件", id:"dropdown", title:"Dropdown Menu", tag:"元件",
+   desc:"從一個控制點展開一組選項。",
+   keywords:["dropdown","menu","select"],
+   tech:"Bootstrap",
+   prompt:"建立一個 Dropdown Menu，按鈕文字為「[名稱]」，選項包含 [A/B/C]。選取後讓 [按鈕文字／內容區] 更新為該選項。",
+   notes:"Dropdown 適合節省空間，但選項如果很少，直接顯示可能更清楚。",
+   demo:"dropdown"},
+  {group:"介面元件", id:"modal", title:"Modal / Dialog", tag:"元件",
+   desc:"浮在主畫面上方的視窗，用於重要資訊、確認或集中操作。",
+   keywords:["modal","dialog","popup"],
+   tech:"Bootstrap",
+   prompt:"建立一個 Modal，由 [按鈕／事件] 觸發。Modal 標題為 [標題]，內容包含 [內容]，提供 [確認／取消] 按鈕。",
+   notes:"Modal 會中斷目前流程，所以適合真正需要聚焦的內容。",
+   demo:"modal"},
+  {group:"介面元件", id:"tooltip", title:"Tooltip", tag:"元件",
+   desc:"短而輕量的提示資訊，通常 hover 或 focus 時出現。",
+   keywords:["tooltip","hint","hover help"],
+   tech:"Bootstrap",
+   prompt:"在 [物件名稱] 上加入 Tooltip，內容為「[簡短提示]」，在 [hover／focus] 時出現，位置在 [上／下／左／右]。",
+   notes:"Tooltip 適合短提示；如果內容較多，改用 Popover 或 Dialog。",
+   demo:"tooltip"},
+  {group:"介面元件", id:"popover", title:"Popover", tag:"元件",
+   desc:"比 Tooltip 更完整的小型資訊卡。",
+   keywords:["popover","info card"],
+   tech:"Bootstrap",
+   prompt:"在 [物件] 上加入 Popover，標題為 [標題]、內容為 [文字]，由 [click／hover] 觸發，點擊外側時關閉。",
+   notes:"Popover 位於 Tooltip 與 Modal 之間：比提示多、又不像 Modal 那麼打斷。",
+   demo:"popover"},
+  {group:"介面元件", id:"text-field", title:"Text Field / Input", tag:"元件",
+   desc:"讓使用者輸入文字或數字。",
+   keywords:["input","text field","form"],
+   tech:"Bootstrap",
+   prompt:"建立一個 [文字／數字] Input，標籤為「[欄位名稱]」，placeholder 為「[提示]」，輸入後用於 [功能]。",
+   notes:"輸入欄位要讓人知道格式、用途與錯誤狀態。",
+   demo:"input"},
+  {group:"介面元件", id:"checkbox", title:"Checkbox", tag:"元件",
+   desc:"可同時選擇多個項目的勾選控制。",
+   keywords:["checkbox","multi select"],
+   tech:"Bootstrap",
+   prompt:"建立 [數量] 個 Checkbox，選項為 [A/B/C]。允許多選，並將目前選擇結果顯示在 [區域]。",
+   notes:"Checkbox 表示多選；與 Radio Button 的單選邏輯不同。",
+   demo:"checkbox"},
+  {group:"介面元件", id:"radio", title:"Radio Button", tag:"元件",
+   desc:"從多個選項中只能選一個。",
+   keywords:["radio","single select"],
+   tech:"Bootstrap",
+   prompt:"建立一組 Radio Button，選項為 [A/B/C]，一次只能選一項；目前選擇要同步更新 [內容／設定]。",
+   notes:"當學生需要「三選一」，Radio 往往比 Dropdown 更直接。",
+   demo:"radio"},
+  {group:"介面元件", id:"switch", title:"Toggle / Switch", tag:"元件",
+   desc:"用來控制開啟／關閉兩種狀態。",
+   keywords:["switch","toggle","on off"],
+   tech:"Bootstrap",
+   prompt:"建立一個 Switch 控制 [功能名稱]。開啟時 [狀態 A]，關閉時 [狀態 B]，並讓畫面立即反映目前狀態。",
+   notes:"Switch 適合立即生效的設定；不要拿來表示要等送出才生效的選項。",
+   demo:"toggle"},
+  {group:"介面元件", id:"slider", title:"Slider / Range", tag:"元件",
+   desc:"拖曳把手來控制連續數值。",
+   keywords:["slider","range","volume"],
+   tech:"HTML + JavaScript",
+   prompt:"建立一個 Slider，範圍從 [最小值] 到 [最大值]，預設為 [數值]。拖曳時即時更新 [數值／物件大小／音量／亮度]。",
+   notes:"Slider 只是控制連續數值的一種答案；Worst 音量 Control 可以拿來挑戰這個慣例。",
+   demo:"slider"},
+  {group:"介面元件", id:"spinner", title:"Spinner / Stepper", tag:"元件",
+   desc:"使用 + / − 或上下控制來逐步增加、減少數值。",
+   keywords:["spinner","stepper","plus minus"],
+   tech:"Bootstrap + JavaScript",
+   prompt:"建立一個數值 Stepper，範圍 [最小] 到 [最大]，每次增加／減少 [步進值]，並同步更新 [目標內容]。",
+   notes:"適合數量、票數、份數等離散值。",
+   demo:"spinner"},
+  {group:"介面元件", id:"progress", title:"Progress Bar", tag:"元件",
+   desc:"把某個進度數值視覺化成百分比或階段。",
+   keywords:["progress bar","progress","percentage"],
+   tech:"Bootstrap",
+   prompt:"建立一個 Progress Bar。進度數值來自 [資料來源／任務狀態／使用者操作]；範圍為 [0–100 或其他]；樣式為 [單色／分段／帶百分比文字]。",
+   notes:"你剛剛提到的填空式 Prompt 很適合這種元件：『數值從哪裡來』＋『視覺怎麼呈現』。",
+   demo:"progress"},
+  {group:"介面元件", id:"toast", title:"Toast / Alert", tag:"元件",
+   desc:"短暫顯示成功、提醒或錯誤訊息。",
+   keywords:["toast","alert","feedback"],
+   tech:"Bootstrap",
+   prompt:"當 [事件] 完成後，顯示一則 Toast：「[訊息]」，停留 [秒數] 後自動消失，位置在 [右下／上方]。",
+   notes:"這是典型的 feedback pattern：使用者不用做下一步，只需要知道系統發生了什麼。",
+   demo:"toast"},
+  {group:"介面元件", id:"cards", title:"Cards / Grid", tag:"元件",
+   desc:"用重複卡片排列資訊、作品或商品。",
+   keywords:["card","grid","gallery"],
+   tech:"Bootstrap",
+   prompt:"建立一個 Responsive Card Grid，每張卡包含 [圖片／標題／文字／按鈕]；桌機每列 [數量] 張，手機每列 [數量] 張。",
+   notes:"Card 是內容容器，不代表特定 interaction；還需要描述卡片可點、可拖、可翻面或其他行為。",
+   demo:"cards"},
+
+  /* TOOLS */
+
+  /* 版面風格：v1.4 新增，不修改 v1.3 原有內容 */
+  {group:"版面風格", id:"color-palette", title:"Color Palette 色票", tag:"風格",
+   desc:"先決定一組彼此協調的顏色，再指定它們在介面中的角色。",
+   keywords:["color palette","primary color","secondary color","accent color","background color","HEX"],
+   tech:"CSS / Adobe Color",
+   prompt:"請為目前的介面建立一組 [5／6] 色 Color Palette。整體氣氛為 [活潑／沉穩／復古／科技／自然]，主色 Primary 為 [顏色或 HEX]。請補出 Secondary、Accent、Background、Surface 與 Text 色，維持足夠文字對比。先列出色票與 HEX，再把它套用到目前介面，但不要改變原本版面與互動功能。",
+   notes:"不要只說『幫我配漂亮一點』。至少指定氣氛、主色，以及希望保留幾個顏色。AI 才知道哪些顏色是主角、哪些只是陪襯。",
+   demo:"colorPalette"},
+  {group:"版面風格", id:"gradient", title:"Gradient 漸層", tag:"風格",
+   desc:"用兩個以上顏色創造平滑轉換；可指定方向、中心點與色彩比例。",
+   keywords:["gradient","linear-gradient","radial-gradient","conic-gradient","color stop"],
+   tech:"CSS Gradient",
+   prompt:"請在 [背景／按鈕／卡片／標題] 使用 [Linear／Radial／Conic] Gradient。從 [顏色 A] 漸變到 [顏色 B]，方向為 [左→右／左上→右下／中心向外／角度]；讓 [顏色 A] 佔較多／平均分配，整體效果要 [柔和／鮮明／夢幻／科技感]，並保持文字清楚可讀。",
+   notes:"Gradient 最重要的描述通常只有三件事：顏色、方向／中心、兩種顏色各佔多少。先做到這三件事就夠了。",
+   demo:"gradient"},
+  {group:"版面風格", id:"texture", title:"Pattern / Texture 紋理", tag:"風格",
+   desc:"不用貼圖片，直接讓瀏覽器用 CSS 生成格線、斜紋、點狀與其他規律背景。",
+   keywords:["pattern","texture","CSS pattern","repeating gradient","halftone","grid","stripes"],
+   tech:"CSS Generated Pattern",
+   prompt:"請不要使用圖片素材。使用純 CSS 為 [背景／區塊] 生成 [Grid 網格／Diagonal Stripes 斜紋／Dots 點狀／Halftone 半色調點／Wave 波浪感] Pattern。底色使用 [顏色 A]，紋理使用 [顏色 B]，紋理密度為 [細／中／粗]，透明度保持低，避免影響文字閱讀。可再疊加一層 [Linear／Radial] Gradient 讓背景更有深度。",
+   notes:"把 Pattern 當成背景的『第二層』。先決定底色，再決定紋理形狀、密度與透明度；需要時再疊一層 Gradient。",
+   demo:"texture"},
+
+  {group:"工具箱", id:"bootstrap", title:"Bootstrap", tag:"工具",
+   desc:"適合快速建立 responsive layout 與常見 UI components。",
+   keywords:["bootstrap","responsive","grid","component"],
+   tech:"Bootstrap",
+   prompt:"使用 Bootstrap 建立一個 responsive layout：桌機版 [欄數／排列]，手機版 [排列方式]；元件使用 [Tabs／Modal／Cards／Navbar]。",
+   notes:"把 Bootstrap 想成『排版＋現成元件』，而不是創意互動本身。",
+   demo:"bootstrap"},
+  {group:"工具箱", id:"jquery", title:"jQuery / jQuery UI", tag:"工具",
+   desc:"適合快速操作 DOM，也可借用既有 interaction vocabulary。",
+   keywords:["jquery","jquery ui","dom","interaction"],
+   tech:"jQuery",
+   prompt:"使用 jQuery 讓 [物件] 在 [click／hover／drag 等事件] 發生時執行 [動作]。如果使用外部 jQuery UI，請只加入必要功能。",
+   notes:"初學階段不必要求所有互動都用 jQuery；只有在它真的讓實作更簡單時再用。",
+   demo:"jquery"},
+  {group:"工具箱", id:"p5", title:"p5.js", tag:"工具",
+   desc:"適合 custom visual interaction、creative coding、動畫、滑鼠與 touch 行為。",
+   keywords:["p5.js","creative coding","canvas","animation"],
+   tech:"p5.js",
+   prompt:"使用 p5.js 建立一個互動：畫面中有 [物件]；使用者透過 [mouse drag／click／touch／keyboard] 控制 [變數]；畫面以 [移動／旋轉／彈跳／粒子] 即時回饋。",
+   notes:"如果你想做 Worst 音量 Control、粒子、彈跳、軌跡、物理感互動，p5.js 很適合。",
+   demo:"p5"},
+  {group:"工具箱", id:"three", title:"Three.js", tag:"進階",
+   desc:"適合真的需要 3D object、camera、scene 的互動。此階段不建議作為預設工具。",
+   keywords:["three.js","3d","scene","camera"],
+   tech:"Three.js",
+   prompt:"使用 Three.js 建立一個最小 3D scene：加入 [物件]、[燈光]、[相機]；使用者以 [drag／click／scroll] 控制 [旋轉／縮放／移動]。保持場景簡單。",
+   notes:"只有概念本身真的需要 3D 才使用。否則 debugging 成本會快速增加。",
+   demo:"three"}
+,
+  {group:"Paper Prototype 標註", id:"annotation-guide", title:"AI 協作標註", tag:"標註",
+   desc:"在 Paper Prototype 上加上結構與互動關鍵詞，讓 AI 更容易理解每個物件、群組、圖層與狀態之間的關係。",
+   keywords:["ID","Group","Layer","Trigger","Feedback","State"],
+   tech:"Paper Prototype Annotation",
+   prompt:"當你要把 Paper Prototype 交給 AI 製作時，可以在每個重要物件旁標註：ID、Group、Layer、Trigger、Feedback、State。只有需要被操作、被控制或被明確指名的物件才需要 ID；同一類物件可用 Group；有前後關係時再標 Layer。",
+   notes:"這不是 HTML 或 CSS 語法，而是一套給 AI 看懂設計意圖的輕量標註方式。",
+   demo:"annotationGuide"}
+
+];
+
+const nav = document.getElementById("nav");
+const hero = document.getElementById("hero");
+const stage = document.getElementById("demoStage");
+const promptBox = document.getElementById("promptBox");
+const notes = document.getElementById("notes");
+const techBadge = document.getElementById("techBadge");
+const crumb = document.getElementById("crumb");
+
+let currentId = "tap";
+let p5Instance = null;
+let threeAnim = null;
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[m]))}
+
+function renderNav(filter=""){
+  nav.innerHTML="";
+  const q = filter.toLowerCase().trim();
+  const groups = [...new Set(ITEMS.map(x=>x.group))];
+  for(const g of groups){
+    const matches = ITEMS.filter(x=>!x.hidden && x.group===g && (
+      !q || x.title.toLowerCase().includes(q) ||
+      x.keywords.join(" ").toLowerCase().includes(q) ||
+      x.desc.toLowerCase().includes(q)
+    ));
+    if(!matches.length) continue;
+    const t=document.createElement("div");
+    t.className="group-title"; t.textContent=g;
+    nav.appendChild(t);
+    matches.forEach(item=>{
+      const b=document.createElement("button");
+      b.className="nav-item-btn"+(item.id===currentId?" active":"");
+      b.innerHTML=`<span>${esc(item.title)}</span><span class="tag">${esc(item.tag)}</span>`;
+      b.onclick=()=>selectItem(item.id);
+      nav.appendChild(b);
+    });
+  }
+}
+
+function selectItem(id){
+  currentId=id;
+  const item=ITEMS.find(x=>x.id===id) || ITEMS[0];
+  cleanup();
+  renderNav(document.getElementById("searchInput").value);
+  crumb.textContent=`${item.group} / ${item.title}`;
+  hero.innerHTML=`
+    <div class="eyebrow">${esc(item.tag)} · ${esc(item.group)}</div>
+    <h1 class="title">${esc(item.title)}</h1>
+    <div class="lead">${esc(item.desc)}</div>
+    <div class="mt-3">${item.keywords.map(k=>`<span class="keyword-pill">${esc(k)}</span>`).join("")}</div>
+  `;
+  techBadge.textContent=item.tech;
+  promptBox.value=item.prompt;
+  notes.innerHTML=`<p class="mb-0">${esc(item.notes)}</p>`;
+
+  const promptCard=document.querySelector(".prompt-card");
+  const notesCard=document.querySelector(".notes-card");
+  const isAnnotation=item.id==="annotation-guide";
+  if(promptCard) promptCard.style.display=isAnnotation?"none":"";
+  if(notesCard) notesCard.style.display=isAnnotation?"none":"";
+
+  renderDemo(item.demo);
+}
+
+function cleanup(){
+  document.querySelectorAll('[data-bs-toggle="popover"]').forEach(el=>{
+    const instance=bootstrap.Popover.getInstance(el);
+    if(instance) instance.dispose();
+  });
+  document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el=>{
+    const instance=bootstrap.Tooltip.getInstance(el);
+    if(instance) instance.dispose();
+  });
+  document.querySelectorAll('.popover,.tooltip').forEach(el=>el.remove());
+  if(p5Instance){ p5Instance.remove(); p5Instance=null; }
+  if(threeAnim){ cancelAnimationFrame(threeAnim); threeAnim=null; }
+}
+
+function resetStage(){
+  stage.innerHTML='<div class="demo-label">請操作看看</div>';
+}
+
+function renderDemo(type){
+  resetStage();
+
+  const add=(html)=>stage.insertAdjacentHTML("beforeend",html);
+
+  if(type==="tap"){
+    add(`<button id="tapBtn" class="btn btn-dark btn-lg">點我</button>
+         <div id="tapMsg" class="ms-3 fw-semibold">等待操作</div>`);
+    $("#tapBtn").on("click",()=>$("#tapMsg").text("已觸發 ✓"));
+  }
+  else if(type==="double"){
+    add(`<div id="dblBox" class="box">雙擊看看</div>`);
+    $("#dblBox").on("dblclick",function(){
+      $(this).toggleClass("big").css("transform", $(this).hasClass("big")?"scale(1.35)":"scale(1)");
+    });
+  }
+  else if(type==="hold"){
+    add(`<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center">
+      <div id="holdBox" class="box" style="touch-action:none;position:relative;overflow:hidden">
+        <div id="holdFill" style="position:absolute;left:0;bottom:0;width:100%;height:0;background:rgba(255,255,255,.22);pointer-events:none"></div>
+        <span id="holdLabel" style="position:relative;z-index:2">按住 1 秒</span>
+      </div>
+      <div id="holdMsg" style="min-width:92px;font-weight:700;color:#526585">尚未觸發</div>
+    </div>`);
+    const el=document.getElementById("holdBox");
+    const label=document.getElementById("holdLabel");
+    const fill=document.getElementById("holdFill");
+    const msg=document.getElementById("holdMsg");
+    let pressing=false, startTime=0, raf=0;
+    const duration=1000;
+
+    function reset(text="尚未觸發"){
+      pressing=false;
+      cancelAnimationFrame(raf);
+      fill.style.height="0%";
+      label.textContent="按住 1 秒";
+      msg.textContent=text;
+    }
+
+    function tick(now){
+      if(!pressing) return;
+      const p=Math.min(1,(now-startTime)/duration);
+      fill.style.height=(p*100)+"%";
+      msg.textContent=Math.round(p*100)+"%";
+      if(p>=1){
+        pressing=false;
+        label.textContent="已觸發 ✓";
+        msg.textContent="Long Press 成功";
+        fill.style.height="100%";
+        if(navigator.vibrate) navigator.vibrate(35);
+        return;
+      }
+      raf=requestAnimationFrame(tick);
+    }
+
+    el.addEventListener("pointerdown",e=>{
+      e.preventDefault();
+      el.setPointerCapture?.(e.pointerId);
+      pressing=true;
+      startTime=performance.now();
+      label.textContent="繼續按住…";
+      msg.textContent="0%";
+      raf=requestAnimationFrame(tick);
+    });
+
+    const stop=e=>{
+      if(!pressing) return;
+      el.releasePointerCapture?.(e.pointerId);
+      reset("太早放開");
+    };
+    el.addEventListener("pointerup",stop);
+    el.addEventListener("pointercancel",stop);
+  }
+  else if(type==="drag"){
+    add(`<div id="dragBox" class="box draggable">拖曳我</div>`);
+    make拖曳gable(document.getElementById("dragBox"));
+  }
+  else if(type==="drop"){
+    add(`<div style="display:flex;gap:40px;align-items:center;flex-wrap:wrap;justify-content:center">
+          <div id="drop拖曳" class="box draggable">拖曳</div>
+          <div id="dropZone" class="ghost-zone">放到這裡</div>
+         </div>`);
+    make拖曳gable(document.getElementById("drop拖曳"), document.getElementById("dropZone"));
+  }
+  else if(type==="resize"){
+    add(`<div class="resize-box">拖曳 the bottom-right corner to resize me.</div>`);
+  }
+  else if(type==="select"){
+    add(`<div class="selected-demo">
+      <div class="selectable-item">A</div><div class="selectable-item">B</div>
+      <div class="selectable-item">C</div><div class="selectable-item">D</div>
+    </div>`);
+    $(".selectable-item").on("click",function(){$(this).toggleClass("selected")});
+  }
+  else if(type==="sort"){
+    add(`<div style="width:min(100%,460px)">
+      <div class="tiny mb-3">直接拖曳便利貼，重新排列位置</div>
+      <ul id="sortableList" class="sortable-list sticky-sortable">
+        <li data-label="Research" class="sticky-note sticky-a">Research</li>
+        <li data-label="Prototype" class="sticky-note sticky-b">Prototype</li>
+        <li data-label="Test" class="sticky-note sticky-c">Test</li>
+        <li data-label="Revise" class="sticky-note sticky-d">Revise</li>
+      </ul>
+    </div>`);
+    pointerSortable(document.getElementById("sortableList"));
+  }
+  else if(type==="toggle"){
+    add(`<div class="form-check form-switch fs-4">
+      <input class="form-check-input" type="checkbox" id="switchDemo">
+      <label class="form-check-label ms-2" for="switchDemo">Off</label>
+    </div>`);
+    $("#switchDemo").on("change",function(){
+      $(this).next().text(this.checked?"On":"Off");
+      stage.style.background=this.checked?"linear-gradient(135deg,#324a78,#514a8e)":"linear-gradient(135deg,#ffffff,#f2f7ff 55%,#fff7ef)";
+      stage.style.color=this.checked?"#fff":"var(--ink)";
+    });
+  }
+  else if(type==="snap"){
+    add(`<div style="width:min(100%,580px);height:260px;position:relative;border:1px solid var(--line);border-radius:14px;background-image:linear-gradient(#eee 1px,transparent 1px),linear-gradient(90deg,#eee 1px,transparent 1px);background-size:50px 50px;">
+      <div id="snapBox" class="box draggable" style="width:80px;height:80px;position:absolute;left:20px;top:20px">Snap</div>
+    </div>`);
+    makeSnap(document.getElementById("snapBox"),50);
+  }
+  else if(type==="hover"){
+    add(`<div class="hover-card">Hover over me</div>`);
+  }
+  else if(type==="scroll"){
+    add(`<div class="scroll-box" id="scrollDemo">
+      <div class="scroll-block">1</div><div class="scroll-block">2</div>
+      <div class="scroll-block">3</div><div class="scroll-block">4</div>
+      <div class="scroll-block">5</div>
+    </div>`);
+    $("#scrollDemo").on("scroll",function(){
+      const max=this.scrollHeight-this.clientHeight;
+      const p=max?Math.round(this.scrollTop/max*100):0;
+      this.style.boxShadow=`inset 0 ${Math.round(p/10)}px 20px rgba(0,0,0,.08)`;
+    });
+  }
+  else if(type==="keyboard"){
+    add(`<div class="kbd-demo"><input id="kbdInput" class="form-control" placeholder="點這裡後按任意鍵">
+      <div id="kbdOut" class="kbd-output">尚未按下按鍵</div></div>`);
+    $("#kbdInput").on("keydown",e=>$("#kbdOut").text(`Key: ${e.key} / Code: ${e.code}`));
+  }
+  else if(type==="input"){
+    add(`<div class="kbd-demo"><input id="textDemo" class="form-control form-control-lg" placeholder="輸入一些文字…">
+      <div id="textOut" class="kbd-output">輸入內容會顯示在這裡</div></div>`);
+    $("#textDemo").on("input",e=>$("#textOut").text(e.target.value || "輸入內容會顯示在這裡"));
+  }
+  else if(type==="swipe"){
+    add(`<div id="swipeCard" class="box" style="width:240px;height:150px;touch-action:none;transition:transform .25s">左右滑動我</div>`);
+    let startX=null;
+    const el=document.getElementById("swipeCard");
+    const start=e=>startX=(e.touches?e.touches[0].clientX:e.clientX);
+    const end=e=>{
+      if(startX===null)return;
+      const x=(e.changedTouches?e.changedTouches[0].clientX:e.clientX);
+      const dx=x-startX;
+      el.style.transform=`translateX(${Math.max(-140,Math.min(140,dx))}px) rotate(${dx/20}deg)`;
+      setTimeout(()=>el.style.transform="translateX(0) rotate(0)",350);
+      startX=null;
+    };
+    el.addEventListener("touchstart",start,{passive:true}); el.addEventListener("touchend",end);
+    el.addEventListener("mousedown",start); window.addEventListener("mouseup",end,{once:true});
+  }
+  else if(type==="pinch"){
+    add(`<div class="box" style="width:180px;height:180px;text-align:center;padding:15px">Pinch / Spread<br><small>(device dependent)</small></div>`);
+  }
+  else if(type==="button"){
+    add(`<button id="btnDemo" class="btn btn-dark btn-lg">確定</button>`);
+    $("#btnDemo").on("click",function(){
+      $(this).text("已確定 ✓").removeClass("btn-dark").addClass("btn-success");
+      setTimeout(()=>$(this).text("確定").removeClass("btn-success").addClass("btn-dark"),1200);
+    });
+  }
+  else if(type==="tabs"){
+    add(`<div class="tab-panels w-100" style="max-width:620px">
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabA">概覽</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabB">流程</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabC">筆記</button></li>
+      </ul>
+      <div class="tab-content border border-top-0 p-4 bg-white">
+        <div class="tab-pane fade show active" id="tabA">這是概覽內容。</div>
+        <div class="tab-pane fade" id="tabB">這是流程內容。</div>
+        <div class="tab-pane fade" id="tabC">這是筆記內容。</div>
+      </div>
+    </div>`);
+  }
+  else if(type==="accordion"){
+    add(`<div class="accordion w-100" id="acc" style="max-width:640px">
+      <div class="accordion-item"><h2 class="accordion-header">
+        <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#a1">什麼是 Trigger？</button>
+      </h2><div id="a1" class="accordion-collapse collapse show" data-bs-parent="#acc"><div class="accordion-body">啟動一段互動的事件。</div></div></div>
+      <div class="accordion-item"><h2 class="accordion-header">
+        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#a2">什麼是 Feedback？</button>
+      </h2><div id="a2" class="accordion-collapse collapse" data-bs-parent="#acc"><div class="accordion-body">系統對使用者操作產生的視覺、聲音或觸覺回應。</div></div></div>
+    </div>`);
+  }
+  else if(type==="carousel"){
+    add(`<div style="width:min(100%,650px)">
+      <div id="carDemo" class="carousel slide carousel-simple" data-bs-interval="false">
+        <div class="carousel-indicators" style="bottom:12px">
+          <button type="button" data-bs-target="#carDemo" data-bs-slide-to="0" class="active" aria-current="true" aria-label="第 1 張"></button>
+          <button type="button" data-bs-target="#carDemo" data-bs-slide-to="1" aria-label="第 2 張"></button>
+          <button type="button" data-bs-target="#carDemo" data-bs-slide-to="2" aria-label="第 3 張"></button>
+        </div>
+        <div class="carousel-inner">
+          <div class="carousel-item active"><div class="carousel-slide">01</div></div>
+          <div class="carousel-item"><div class="carousel-slide">02</div></div>
+          <div class="carousel-item"><div class="carousel-slide">03</div></div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carDemo" data-bs-slide="prev"><span class="carousel-control-prev-icon" style="filter:invert(1)"></span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carDemo" data-bs-slide="next"><span class="carousel-control-next-icon" style="filter:invert(1)"></span></button>
+      </div>
+      <div class="mt-3">
+        <div class="d-flex justify-content-between tiny mb-1"><span>目前位置</span><span id="carCount">1 / 3</span></div>
+        <div class="progress" style="height:8px"><div id="carProgress" class="progress-bar" style="width:33.333%"></div></div>
+      </div>
+      <div class="mt-3 d-flex gap-2 flex-wrap">
+        <span class="keyword-pill">Arrows</span>
+        <span class="keyword-pill">Dots / Indicators</span>
+        <span class="keyword-pill">Progress Bar</span>
+      </div>
+    </div>`);
+    const carEl=document.getElementById("carDemo");
+    carEl.addEventListener("slid.bs.carousel",e=>{
+      const index=e.to ?? 0;
+      document.getElementById("carCount").textContent=`${index+1} / 3`;
+      document.getElementById("carProgress").style.width=`${((index+1)/3)*100}%`;
+    });
+  }
+  else if(type==="sidebar"){
+    add(`<div class="fake-sidebar">
+      <div id="fakePanel" class="fake-panel"><strong>Menu</strong><hr><div>Home</div><div>Projects</div><div>About</div></div>
+      <div class="fake-content"><button id="openSide" class="btn btn-dark">☰ 開啟 Sidebar</button><p class="mt-3 text-secondary">主要內容留在這裡。</p></div>
+    </div>`);
+    $("#openSide").on("click",()=>$("#fakePanel").toggleClass("open"));
+  }
+  else if(type==="dropdown"){
+    add(`<div class="dropdown">
+      <button id="ddBtn" class="btn btn-dark dropdown-toggle" data-bs-toggle="dropdown">選擇一項</button>
+      <ul class="dropdown-menu"><li><a class="dropdown-item" href="#">選項 A</a></li><li><a class="dropdown-item" href="#">選項 B</a></li><li><a class="dropdown-item" href="#">選項 C</a></li></ul>
+    </div>`);
+    $(".dropdown-item").on("click",function(e){e.preventDefault(); $("#ddBtn").text($(this).text())});
+  }
+  else if(type==="modal"){
+    add(`<button class="btn btn-dark btn-lg" data-bs-toggle="modal" data-bs-target="#demoModal">開啟 Modal</button>
+      <div class="modal fade" id="demoModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Modal 標題</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">Modal 會暫時中斷原本流程，要求使用者聚焦處理。</div>
+        <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">取消</button><button class="btn btn-dark" data-bs-dismiss="modal">確認</button></div>
+      </div></div></div>`);
+  }
+  else if(type==="tooltip"){
+    add(`<button id="tipBtn" class="btn btn-outline-dark" data-bs-toggle="tooltip" title="這是一段簡短提示。">Hover 看看</button>`);
+    new bootstrap.Tooltip(document.getElementById("tipBtn"));
+  }
+  else if(type==="popover"){
+    add(`<button id="popBtn" class="btn btn-outline-dark" data-bs-toggle="popover" tabindex="0" data-bs-title="更多資訊" data-bs-content="Popover 可以放比 Tooltip 更多的內容。">點我</button>`);
+    new bootstrap.Popover(document.getElementById("popBtn"),{trigger:"focus"});
+  }
+  else if(type==="checkbox"){
+    add(`<div><div class="form-check"><input class="form-check-input chk" type="checkbox" value="A" id="c1"><label class="form-check-label" for="c1">選項 A</label></div>
+    <div class="form-check"><input class="form-check-input chk" type="checkbox" value="B" id="c2"><label class="form-check-label" for="c2">選項 B</label></div>
+    <div class="form-check"><input class="form-check-input chk" type="checkbox" value="C" id="c3"><label class="form-check-label" for="c3">選項 C</label></div>
+    <div id="chkOut" class="mt-3 tiny">目前沒有選取</div></div>`);
+    $(".chk").on("change",()=>$("#chkOut").text("已選取："+($(".chk:checked").map((_,e)=>e.value).get().join(", ")||"none")));
+  }
+  else if(type==="radio"){
+    add(`<div><div class="form-check"><input class="form-check-input rd" type="radio" name="rd" value="A" id="r1"><label class="form-check-label" for="r1">選項 A</label></div>
+    <div class="form-check"><input class="form-check-input rd" type="radio" name="rd" value="B" id="r2"><label class="form-check-label" for="r2">選項 B</label></div>
+    <div class="form-check"><input class="form-check-input rd" type="radio" name="rd" value="C" id="r3"><label class="form-check-label" for="r3">選項 C</label></div>
+    <div id="rdOut" class="mt-3 tiny">目前沒有選取</div></div>`);
+    $(".rd").on("change",()=>$("#rdOut").text("已選取："+$(".rd:checked").val()));
+  }
+  else if(type==="slider"){
+    add(`<div class="meter">
+      <label class="range-label">音量 <span id="rangeVal">50</span></label>
+      <input id="rangeDemo" type="range" class="form-range" min="0" max="100" value="50">
+      <div id="rangeVisual" style="height:70px;width:50%;background:#111;border-radius:14px;transition:.08s"></div>
+    </div>`);
+    $("#rangeDemo").on("input",function(){
+      $("#rangeVal").text(this.value); $("#rangeVisual").css("width",this.value+"%");
+    });
+  }
+  else if(type==="spinner"){
+    add(`<div class="input-group" style="max-width:260px">
+      <button id="minus" class="btn btn-outline-dark">−</button>
+      <input id="spinVal" class="form-control text-center" value="1" readonly>
+      <button id="plus" class="btn btn-outline-dark">+</button>
+    </div>`);
+    let n=1; $("#minus").on("click",()=>{$("#spinVal").val(n=Math.max(0,n-1))}); $("#plus").on("click",()=>{$("#spinVal").val(n=Math.min(10,n+1))});
+  }
+  else if(type==="progress"){
+    add(`<div class="meter">
+      <div class="d-flex justify-content-between mb-2"><span>任務進度</span><span id="progText">35%</span></div>
+      <div class="progress"><div id="progBar" class="progress-bar bg-dark" style="width:35%">35%</div></div>
+      <input id="progRange" class="form-range mt-4" type="range" min="0" max="100" value="35">
+    </div>`);
+    $("#progRange").on("input",function(){
+      $("#progBar").css("width",this.value+"%").text(this.value+"%");
+      $("#progText").text(this.value+"%");
+    });
+  }
+  else if(type==="toast"){
+    add(`<button id="toastBtn" class="btn btn-dark">完成任務</button>
+      <div class="toast-host"><div id="demoToast" class="toast"><div class="toast-header"><strong class="me-auto">系統</strong><button class="btn-close" data-bs-dismiss="toast"></button></div><div class="toast-body">任務完成。</div></div></div>`);
+    const t=new bootstrap.Toast(document.getElementById("demoToast"),{delay:1800});
+    $("#toastBtn").on("click",()=>t.show());
+  }
+  else if(type==="cards"){
+    add(`<div class="row g-3 w-100">
+      ${["A","B","C"].map(x=>`<div class="col-12 col-md-4"><div class="card h-100"><div class="card-body"><h5 class="card-title">Card ${x}</h5><p class="card-text">可重複使用的內容容器。</p><button class="btn btn-sm btn-outline-dark">開啟</button></div></div></div>`).join("")}
+    </div>`);
+  }
+
+
+  else if(type==="annotationGuide"){
+    add(`<div style="width:min(100%,820px)">
+      <div style="margin-bottom:22px">
+        <div class="tiny mb-2">Paper Prototype → AI Prototype</div>
+        <h3 style="margin:0 0 8px">把設計意圖標註清楚</h3>
+        <p style="margin:0;color:#667085;line-height:1.7">
+          這些詞不是 HTML 或 CSS 標籤，而是協助 AI 理解「哪個物件、哪些是一組、誰在前面、怎麼互動」的描述方式。
+        </p>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">ID</div>
+            <strong>這一個物件是誰？</strong>
+            <p>需要被操作、控制、動畫或明確指名的物件，建議給一個唯一名稱。</p>
+            <code>record_A</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">Group</div>
+            <strong>哪些東西屬於同一組？</strong>
+            <p>用虛線框把同類按鈕、卡片或控制項圈起來，再標示群組名稱。</p>
+            <code>filterButtons</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">Layer</div>
+            <strong>誰在前面？誰在後面？</strong>
+            <p>有重疊或前後關係時，再標示圖層。數字越高可代表越上層。</p>
+            <code>Layer 1 / Layer 2 / Layer 3</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">Trigger</div>
+            <strong>使用者做了什麼？</strong>
+            <p>例如 Click、Hover、Drag、Drop、Keyboard Input。</p>
+            <code>Trigger: Drag</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">Feedback</div>
+            <strong>系統如何回應？</strong>
+            <p>例如變色、移動、放大、顯示訊息、動畫或聲音。</p>
+            <code>Feedback: Snap to center</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="annotation-card">
+            <div class="annotation-key">State</div>
+            <strong>現在進入什麼狀態？</strong>
+            <p>例如 Default、Active、Open、Selected、Playing。</p>
+            <code>State: Playing</code>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded-4" style="background:#eef4ff;border:1px solid #d9e5ff">
+        <strong>最簡單的使用方式</strong>
+        <div class="mt-2" style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.75">
+          ID: record_A<br>
+          Group: recordCollection<br>
+          Layer: 2<br>
+          Trigger: Drag<br>
+          Feedback: Follow cursor<br>
+          State: Selected
+        </div>
+      </div>
+    </div>`);
+  }
+  else if(type==="colorPalette"){
+    add(`<div style="width:min(100%,760px)">
+      <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+        <div class="tiny">選一組色票，看看同一個介面如何只靠顏色改變氣氛。</div>
+        <a class="btn btn-sm btn-outline-dark" href="https://color.adobe.com/create/color-wheel" target="_blank" rel="noopener noreferrer">
+          到 Adobe Color 試配色 ↗
+        </a>
+      </div>
+      <div id="paletteChoices" class="row g-3 mb-4"></div>
+      <div id="palettePreview" style="border-radius:18px;padding:24px;transition:.25s;border:1px solid #dde4ef">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+          <div>
+            <div id="previewTag" style="font-size:.75rem;font-weight:800;letter-spacing:.08em">INTERACTION DESIGN</div>
+            <h3 id="previewTitle" style="margin:.35rem 0 .4rem">介面色彩預覽</h3>
+            <div id="previewText" style="max-width:480px">同一個內容，不改版面，只替換 Primary、Secondary、Accent、Background 與 Text。</div>
+          </div>
+          <button id="previewButton" class="btn">確定</button>
+        </div>
+      </div>
+    </div>`);
+    const palettes=[
+      {name:"明亮科技", colors:["#4F7CFF","#7C5CFC","#20C997","#F7FAFF","#24324A"]},
+      {name:"夏日活力", colors:["#FF6B6B","#FFB84D","#2EC4B6","#FFF9F0","#3C3440"]},
+      {name:"柔和自然", colors:["#5A8F7B","#A6C48A","#E9C46A","#F7F4EA","#33413C"]}
+    ];
+    const names=["Primary","Secondary","Accent","Background","Text"];
+    const host=document.getElementById("paletteChoices");
+    function applyPalette(p){
+      const [primary,secondary,accent,bg,text]=p.colors;
+      const pv=document.getElementById("palettePreview");
+      pv.style.background=bg; pv.style.color=text;
+      document.getElementById("previewTag").style.color=secondary;
+      document.getElementById("previewButton").style.background=primary;
+      document.getElementById("previewButton").style.color="#fff";
+      document.getElementById("previewButton").style.borderColor=primary;
+      pv.style.boxShadow=`0 16px 40px ${accent}22`;
+    }
+    palettes.forEach((p,i)=>{
+      const col=document.createElement("div"); col.className="col-12 col-lg-4";
+      col.innerHTML=`<button class="w-100 text-start palette-choice" data-index="${i}" style="border:1px solid #dce4f0;background:white;border-radius:16px;padding:14px">
+        <strong>${p.name}</strong>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:10px">
+          ${p.colors.map((c,j)=>`<div title="${names[j]} ${c}" style="height:38px;border-radius:8px;background:${c};border:1px solid rgba(0,0,0,.08)"></div>`).join("")}
+        </div>
+        <div class="tiny mt-2">${p.colors.join(" · ")}</div>
+      </button>`;
+      host.appendChild(col);
+    });
+    host.querySelectorAll(".palette-choice").forEach(btn=>{
+      btn.addEventListener("click",()=>applyPalette(palettes[Number(btn.dataset.index)]));
+    });
+    applyPalette(palettes[0]);
+  }
+  else if(type==="gradient"){
+    add(`<div style="width:min(100%,760px)">
+      <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap mb-3">
+        <div class="tiny">點選不同種類，看 Gradient 的方向與結構差異。</div>
+        <a class="btn btn-sm btn-outline-dark" href="https://cssgradient.io/" target="_blank" rel="noopener noreferrer">
+          到 CSS Gradient 試漸層 ↗
+        </a>
+      </div>
+      <div class="row g-3" id="gradientChoices">
+        <div class="col-6 col-lg-3"><button class="gradient-choice w-100" data-gradient="linear-gradient(135deg,#4F7CFF,#FF7A90)" data-name="Linear" style="height:120px;border:0;border-radius:16px;background:linear-gradient(135deg,#4F7CFF,#FF7A90);color:white;font-weight:800">Linear</button></div>
+        <div class="col-6 col-lg-3"><button class="gradient-choice w-100" data-gradient="radial-gradient(circle at 35% 30%,#FFE08A,#FF7A90 48%,#7C5CFC)" data-name="Radial" style="height:120px;border:0;border-radius:16px;background:radial-gradient(circle at 35% 30%,#FFE08A,#FF7A90 48%,#7C5CFC);color:white;font-weight:800">Radial</button></div>
+        <div class="col-6 col-lg-3"><button class="gradient-choice w-100" data-gradient="conic-gradient(from 210deg,#2EC4B6,#4F7CFF,#B66DFF,#FFB84D,#2EC4B6)" data-name="Conic" style="height:120px;border:0;border-radius:16px;background:conic-gradient(from 210deg,#2EC4B6,#4F7CFF,#B66DFF,#FFB84D,#2EC4B6);color:white;font-weight:800">Conic</button></div>
+        <div class="col-6 col-lg-3"><button class="gradient-choice w-100" data-gradient="linear-gradient(90deg,#25314A 0%,#4F7CFF 35%,#82E8CE 70%,#FFF0A8 100%)" data-name="Multi-stop" style="height:120px;border:0;border-radius:16px;background:linear-gradient(90deg,#25314A 0%,#4F7CFF 35%,#82E8CE 70%,#FFF0A8 100%);color:white;font-weight:800">Multi-stop</button></div>
+      </div>
+      <div id="gradientPreview" class="mt-4" style="height:170px;border-radius:20px;background:linear-gradient(135deg,#4F7CFF,#FF7A90);display:flex;align-items:center;justify-content:center;color:white;font-size:1.3rem;font-weight:800;transition:.25s">Linear Gradient</div>
+    </div>`);
+    document.querySelectorAll(".gradient-choice").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const pv=document.getElementById("gradientPreview");
+        pv.style.background=btn.dataset.gradient;
+        pv.textContent=btn.dataset.name+" Gradient";
+      });
+    });
+  }
+  else if(type==="texture"){
+    add(`<div style="width:min(100%,790px)">
+      <div class="tiny mb-3">以下全部由 CSS 生成，沒有使用背景圖片。</div>
+      <div class="row g-3 mb-4" id="textureChoices">
+        <div class="col-6 col-lg-3"><button class="texture-choice w-100" data-kind="grid" style="height:110px;border:1px solid #dbe5f3;border-radius:16px;background-color:#F8FBFF;background-image:linear-gradient(#8AA7FF55 1px,transparent 1px),linear-gradient(90deg,#8AA7FF55 1px,transparent 1px);background-size:18px 18px;font-weight:800">Grid</button></div>
+        <div class="col-6 col-lg-3"><button class="texture-choice w-100" data-kind="stripes" style="height:110px;border:1px solid #dbe5f3;border-radius:16px;background:repeating-linear-gradient(135deg,#FFF5DE 0 10px,#FFAE6D55 10px 18px);font-weight:800">Stripes</button></div>
+        <div class="col-6 col-lg-3"><button class="texture-choice w-100" data-kind="dots" style="height:110px;border:1px solid #dbe5f3;border-radius:16px;background-color:#F1FFF9;background-image:radial-gradient(#35B889 2px,transparent 2.5px);background-size:16px 16px;font-weight:800">Dots</button></div>
+        <div class="col-6 col-lg-3"><button class="texture-choice w-100" data-kind="halftone" style="height:110px;border:1px solid #dbe5f3;border-radius:16px;background-color:#FFF6FB;background-image:radial-gradient(circle,#D95CA8 0 2px,transparent 2.5px),radial-gradient(circle,#7C5CFC 0 1px,transparent 1.5px);background-size:22px 22px,11px 11px;background-position:0 0,5px 5px;font-weight:800">Halftone</button></div>
+      </div>
+      <div id="texturePreview" style="height:190px;border-radius:20px;border:1px solid #dbe5f3;display:flex;align-items:center;justify-content:center;padding:22px;text-align:center">
+        <div style="background:rgba(255,255,255,.88);backdrop-filter:blur(4px);padding:16px 20px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.08)">
+          <strong id="textureName">Grid Pattern</strong><br><span class="tiny">紋理應該支援內容，而不是蓋過文字。</span>
+        </div>
+      </div>
+      <div class="mt-3 tiny">也可以在 Pattern 上再疊加 Gradient，讓背景更有深度。</div>
+    </div>`);
+    const pv=document.getElementById("texturePreview");
+    const styles={
+      grid:{
+        name:"Grid Pattern",
+        bgColor:"#F8FBFF",
+        bgImage:"linear-gradient(#8AA7FF55 1px,transparent 1px),linear-gradient(90deg,#8AA7FF55 1px,transparent 1px),linear-gradient(135deg,#EEF3FF88,#FFF8F088)",
+        bgSize:"18px 18px,18px 18px,100% 100%",
+        bgPos:"0 0,0 0,0 0"
+      },
+      stripes:{
+        name:"Diagonal Stripes",
+        bgColor:"#FFF5DE",
+        bgImage:"repeating-linear-gradient(135deg,#FFF5DE 0 10px,#FFAE6D55 10px 18px),linear-gradient(90deg,#FFF8EA,#FFE7F2)",
+        bgSize:"auto,100% 100%",
+        bgPos:"0 0,0 0"
+      },
+      dots:{
+        name:"Dots Pattern",
+        bgColor:"#F1FFF9",
+        bgImage:"radial-gradient(#35B889 2px,transparent 2.5px),linear-gradient(135deg,#ECFFF7,#EEF2FF)",
+        bgSize:"16px 16px,100% 100%",
+        bgPos:"0 0,0 0"
+      },
+      halftone:{
+        name:"Halftone Dots",
+        bgColor:"#FFF6FB",
+        bgImage:"radial-gradient(circle at center,#D95CA8 0 3px,transparent 3.4px),radial-gradient(circle at center,#7C5CFC 0 1.4px,transparent 1.8px),linear-gradient(135deg,#FFF7FB,#F1EEFF)",
+        bgSize:"28px 28px,12px 12px,100% 100%",
+        bgPos:"0 0,6px 6px,0 0"
+      }
+    };
+    function applyTexture(k){
+      const s=styles[k];
+      pv.style.backgroundColor=s.bgColor;
+      pv.style.backgroundImage=s.bgImage;
+      pv.style.backgroundSize=s.bgSize;
+      pv.style.backgroundPosition=s.bgPos;
+      document.getElementById("textureName").textContent=s.name;
+    }
+    document.querySelectorAll(".texture-choice").forEach(btn=>btn.addEventListener("click",()=>applyTexture(btn.dataset.kind)));
+    applyTexture("grid");
+  }
+  else if(type==="bootstrap"){
+    add(`<div class="tool-card"><h3>Bootstrap</h3><p>Responsive layout + common UI components.</p>
+      <div class="tool-grid"><div class="tool-chip">Grid</div><div class="tool-chip">Cards</div><div class="tool-chip">Modal</div><div class="tool-chip">Tabs</div></div></div>`);
+  }
+  else if(type==="jquery"){
+    add(`<div class="tool-card"><h3>jQuery</h3><p id="jqText">按下按鈕改變這段文字。</p><button id="jqBtn" class="btn btn-dark">執行 jQuery</button></div>`);
+    $("#jqBtn").on("click",()=>$("#jqText").fadeOut(150).text("jQuery 已改變頁面內容。").fadeIn(200));
+  }
+  else if(type==="p5"){
+    add(`<div id="p5Canvas" class="p5-wrap"></div>`);
+    p5Instance=new p5(p=>{
+      let x=120,y=120;
+      p.setup=()=>{ const c=p.createCanvas(720,360); c.parent("p5Canvas"); p.noStroke(); };
+      p.draw=()=>{
+        p.background(245);
+        const tx=p.mouseX>=0 && p.mouseX<p.width?p.mouseX:x;
+        const ty=p.mouseY>=0 && p.mouseY<p.height?p.mouseY:y;
+        x+=(tx-x)*.08; y+=(ty-y)*.08;
+        p.circle(x,y,70);
+        p.fill(30); p.text("移動滑鼠",20,30); p.fill(0);
+      };
+      p.windowResized=()=>{
+        const host=document.getElementById("p5Canvas");
+        if(host) p.resizeCanvas(host.clientWidth,360);
+      };
+    });
+  }
+  else if(type==="three"){
+    add(`<div id="threeCanvas" class="three-wrap"></div>`);
+    initThree();
+  }
+}
+
+function make拖曳gable(el, dropZone=null){
+  let dragging=false, sx=0, sy=0, ox=0, oy=0;
+  el.style.transform="translate(0px,0px)";
+  const point=e=>e.touches?e.touches[0]:e;
+  const start=e=>{
+    dragging=true;
+    const p=point(e); sx=p.clientX; sy=p.clientY;
+    const m=el.dataset.xy?el.dataset.xy.split(",").map(Number):[0,0]; ox=m[0]; oy=m[1];
+    e.preventDefault?.();
+  };
+  const move=e=>{
+    if(!dragging)return;
+    const p=point(e); const x=ox+p.clientX-sx, y=oy+p.clientY-sy;
+    el.dataset.xy=`${x},${y}`; el.style.transform=`translate(${x}px,${y}px)`;
+    if(dropZone){
+      const a=el.getBoundingClientRect(), b=dropZone.getBoundingClientRect();
+      const hit=a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+      dropZone.classList.toggle("hot",hit);
+    }
+  };
+  const end=()=>{
+    if(!dragging)return; dragging=false;
+    if(dropZone){
+      const a=el.getBoundingClientRect(), b=dropZone.getBoundingClientRect();
+      const hit=a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;
+      if(hit){dropZone.textContent="已放入 ✓"; el.style.opacity=".25";}
+      dropZone.classList.remove("hot");
+    }
+  };
+  el.addEventListener("mousedown",start); el.addEventListener("touchstart",start,{passive:false});
+  window.addEventListener("mousemove",move); window.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("mouseup",end); window.addEventListener("touchend",end);
+}
+
+function makeSnap(el,grid){
+  let dragging=false,sx=0,sy=0,ox=20,oy=20;
+  const point=e=>e.touches?e.touches[0]:e;
+  const start=e=>{dragging=true; const p=point(e); sx=p.clientX; sy=p.clientY; e.preventDefault?.();}
+  const move=e=>{if(!dragging)return; const p=point(e); el.style.left=(ox+p.clientX-sx)+"px"; el.style.top=(oy+p.clientY-sy)+"px";}
+  const end=()=>{if(!dragging)return; dragging=false; ox=Math.round(parseFloat(el.style.left)/grid)*grid; oy=Math.round(parseFloat(el.style.top)/grid)*grid; el.style.left=ox+"px"; el.style.top=oy+"px";}
+  el.addEventListener("mousedown",start);el.addEventListener("touchstart",start,{passive:false});
+  window.addEventListener("mousemove",move);window.addEventListener("touchmove",move,{passive:false});
+  window.addEventListener("mouseup",end);window.addEventListener("touchend",end);
+}
+
+function pointerSortable(list){
+  let dragging=null;
+  let placeholder=null;
+  let offsetY=0;
+
+  function refreshLabels(){
+    [...list.children]
+      .filter(el=>!el.classList.contains("sort-placeholder"))
+      .forEach(li=>{
+        li.innerHTML=`<span class="sort-handle">⋮⋮</span><span>${li.dataset.label}</span>`;
+      });
+  }
+
+  function bind(li){
+    li.style.touchAction="none";
+    li.addEventListener("pointerdown",e=>{
+      if(e.button!==0) return;
+      dragging=li;
+      const rect=li.getBoundingClientRect();
+      offsetY=e.clientY-rect.top;
+
+      placeholder=document.createElement("li");
+      placeholder.className="sort-placeholder";
+      placeholder.style.height=rect.height+"px";
+      placeholder.style.border="2px dashed #9db1e8";
+      placeholder.style.background="#eef3ff";
+      placeholder.style.borderRadius="12px";
+
+      list.insertBefore(placeholder, li.nextSibling);
+      li.setPointerCapture?.(e.pointerId);
+      li.style.position="fixed";
+      li.style.zIndex="9999";
+      li.style.width=rect.width+"px";
+      li.style.left=rect.left+"px";
+      li.style.top=rect.top+"px";
+      li.style.margin="0";
+      li.style.boxShadow="0 18px 38px rgba(60,78,120,.24)";
+      li.style.cursor="grabbing";
+      document.body.style.userSelect="none";
+      e.preventDefault();
+    });
+
+    li.addEventListener("pointermove",e=>{
+      if(dragging!==li) return;
+      li.style.top=(e.clientY-offsetY)+"px";
+      const siblings=[...list.children].filter(x=>x!==li && x!==placeholder);
+      let placed=false;
+      for(const s of siblings){
+        const r=s.getBoundingClientRect();
+        if(e.clientY < r.top + r.height/2){
+          list.insertBefore(placeholder,s);
+          placed=true;
+          break;
+        }
+      }
+      if(!placed) list.appendChild(placeholder);
+    });
+
+    const finish=e=>{
+      if(dragging!==li) return;
+      list.insertBefore(li,placeholder);
+      placeholder.remove();
+      placeholder=null;
+      dragging=null;
+      li.releasePointerCapture?.(e.pointerId);
+      li.style.position="";
+      li.style.zIndex="";
+      li.style.width="";
+      li.style.left="";
+      li.style.top="";
+      li.style.margin="";
+      li.style.boxShadow="";
+      li.style.cursor="grab";
+      document.body.style.userSelect="";
+      refreshLabels();
+    };
+
+    li.addEventListener("pointerup",finish);
+    li.addEventListener("pointercancel",finish);
+  }
+
+  [...list.children].forEach(bind);
+  refreshLabels();
+}
+
+function simpleSortable(list){ pointerSortable(list); }
+
+function initThree(){
+  const host=document.getElementById("threeCanvas");
+  if(!host || !window.THREE){ host.innerHTML="<div class='p-4'>Three.js could not load.</div>"; return; }
+  const w=host.clientWidth,h=host.clientHeight;
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0xf3f4f6);
+  const camera=new THREE.PerspectiveCamera(55,w/h,.1,100);
+  camera.position.z=4;
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(w,h); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  host.appendChild(renderer.domElement);
+  const geo=new THREE.BoxGeometry(1.4,1.4,1.4);
+  const mat=new THREE.MeshNormalMaterial();
+  const cube=new THREE.Mesh(geo,mat); scene.add(cube);
+  let lastX=null;
+  renderer.domElement.addEventListener("pointermove",e=>{
+    if(e.buttons===1 && lastX!==null) cube.rotation.y+=(e.clientX-lastX)*.01;
+    lastX=e.clientX;
+  });
+  renderer.domElement.addEventListener("pointerup",()=>lastX=null);
+  const animate=()=>{
+    cube.rotation.x+=.005;
+    renderer.render(scene,camera);
+    threeAnim=requestAnimationFrame(animate);
+  };
+  animate();
+}
+
+document.getElementById("searchInput").addEventListener("input",e=>renderNav(e.target.value));
+document.getElementById("copyPrompt").addEventListener("click",async()=>{
+  await navigator.clipboard.writeText(promptBox.value);
+  const b=document.getElementById("copyPrompt"); const old=b.textContent;
+  b.textContent="已複製 ✓"; setTimeout(()=>b.textContent=old,1000);
+});
+
+renderNav();
+selectItem("tap");
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<style>
+  .palette-choice,.gradient-choice,.texture-choice{transition:transform .18s ease, box-shadow .18s ease}
+  .palette-choice:hover,.gradient-choice:hover,.texture-choice:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(79,124,255,.12)}
+  .palette-choice:focus-visible,.gradient-choice:focus-visible,.texture-choice:focus-visible{outline:3px solid #B8C7FF;outline-offset:2px}
+</style>
+
+
+<style>
+  .annotation-card{
+    height:100%;
+    padding:18px;
+    border:1px solid #dfe7f4;
+    border-radius:16px;
+    background:#fff;
+    box-shadow:0 8px 22px rgba(75,105,160,.06);
+  }
+  .annotation-card p{
+    margin:.45rem 0 .8rem;
+    color:#667085;
+    line-height:1.65;
+    font-size:.9rem;
+  }
+  .annotation-card code{
+    display:inline-block;
+    background:#f3f6fb;
+    color:#3557b7;
+    padding:.3rem .5rem;
+    border-radius:8px;
+  }
+  .annotation-key{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:.3rem .55rem;
+    border-radius:999px;
+    background:#eaf0ff;
+    color:#3557b7;
+    font-size:.72rem;
+    font-weight:800;
+    margin-bottom:.7rem;
+  }
+</style>
+
+</body>
+</html>
+<style>
+  .btn-dark{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
+  .btn-dark:hover{background:#3f6de8!important;border-color:#3f6de8!important}
+  .btn-outline-dark{border-color:#6d86c8!important;color:#3858a8!important}
+  .btn-outline-dark:hover{background:var(--primary)!important;color:#fff!important}
+  .box{background:linear-gradient(135deg,var(--primary),#7f6cff)!important;color:#fff!important;box-shadow:0 12px 28px rgba(79,124,255,.22)}
+  .ghost-zone{border-color:#91a7dc!important;background:#f7faff;color:#61739a}
+  .ghost-zone.hot{border-color:var(--mint)!important;background:var(--mint-soft)!important;color:#19785c!important}
+  .selected-demo .selectable-item.selected{background:var(--primary)!important;color:#fff!important}
+  .fake-panel{background:linear-gradient(180deg,var(--primary),#6c63d9)!important;color:#fff!important}
+  .progress-bar{background:linear-gradient(90deg,var(--primary),var(--mint))!important;color:#fff!important}
+  #rangeVisual{background:linear-gradient(90deg,var(--primary),var(--secondary))!important}
+  .group-title{color:#7181a2!important}
+  .nav-item-btn.active{background:linear-gradient(135deg,var(--primary),#6a69dc)!important;color:#fff!important}
+  .nav-item-btn{color:#34435f}
+  .title{color:#263653}
+  .demo-label{color:#7382a0}
+  .card-head{background:#f7faff}
+  .prompt-box{box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+</style>
+
+<style>
+.sortable-list li{display:flex;align-items:center;gap:10px;cursor:grab;user-select:none;}
+.sort-handle{color:#8ea0c5;font-weight:800;letter-spacing:-2px;}
+.sort-placeholder{list-style:none;margin-bottom:8px;}
+#carDemo .carousel-indicators [data-bs-target]{width:9px;height:9px;border-radius:50%;background-color:#6f7b91;border:0;margin:0 5px;}
+#carDemo .carousel-indicators .active{background-color:#4f7cff;}
+</style>
+
+<style>
+  .sticky-sortable{display:grid;gap:12px}
+  .sticky-sortable .sticky-note{
+    min-height:74px;
+    padding:18px 20px;
+    border:0;
+    border-radius:5px;
+    font-weight:800;
+    font-size:1rem;
+    color:#263653;
+    box-shadow:0 7px 16px rgba(50,62,90,.15);
+    transform:rotate(-.5deg);
+  }
+  .sticky-sortable .sticky-note:nth-child(even){transform:rotate(.5deg)}
+  .sticky-a{background:#ffe66d!important}
+  .sticky-b{background:#ff9aa2!important}
+  .sticky-c{background:#8fe3cf!important}
+  .sticky-d{background:#9ec5ff!important}
+  .sticky-sortable .sort-handle{color:rgba(38,54,83,.45);font-size:1.05rem}
+</style>
