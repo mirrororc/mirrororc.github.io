@@ -6,13 +6,13 @@
 <body>
 <div class="app-top"><button class="topbtn" id="toggleSettings" aria-label="開啟設定">⚙ 設定</button><button class="topbtn" id="fullScreen" aria-label="切換全螢幕">⛶ 全螢幕</button></div>
 <section class="window task" id="taskWin"><div class="window-title">☷ <span id="taskTitleDisplay">今日任務</span><span class="handle-hint">拖曳標題移動 · 右下角縮放</span></div><div class="task-body" id="taskBody"><p>請選擇手機或桌機其中一種作為主要設計裝置，在 <span class="red">30 分鐘</span>內完成一張首頁草圖。</p><p>完成後請依照指定連結繳交，<span class="red">最多 3 張圖片</span>。</p></div></section>
-<section class="window timer" id="timerWin"><div class="window-title">☷ 倒數計時器 <span class="handle-hint">可拖曳</span></div><div class="timer-body"><div class="clock" id="clock">00:30:00</div><div class="timer-actions"><button id="startPause">開始</button><button id="resetTimer">重設</button></div></div></section>
+<section class="window timer" id="timerWin"><div class="window-title">☷ 倒數計時器 <span class="handle-hint">可拖曳</span></div><div class="timer-body"><div class="clock" id="clock">01:30:00</div><div class="timer-actions"><button id="startPause">開始</button><button id="resetTimer">重設</button></div></div></section>
 <section class="window qr" id="qrWin"><div class="window-title">☷ 連結與 QR Code <span class="handle-hint">可拖曳</span></div><div class="qr-body"><div class="qr-caption" id="qrCaption">活動連結</div><div class="qr-code" id="qrCode"></div><a class="qr-link" id="qrLink" target="_blank" rel="noopener noreferrer"></a></div></section>
 <div class="backdrop" id="backdrop"></div>
 <aside class="settings" id="settings" aria-label="設定面板">
  <div class="line" style="justify-content:space-between"><h2>⚙ 展示設定</h2><button class="action secondary" id="closeSettings">關閉 ✕</button></div>
  <p class="note">編輯後即時預覽；按「儲存目前設定」後，下次在同一瀏覽器開啟會自動套用。</p>
- <h3>倒數計時</h3><label for="minutes">倒數時間（時:分:秒）</label><input id="minutes" type="text" inputmode="numeric" value="00:30:00" placeholder="01:30:00" pattern="[0-9]{1,3}:[0-5][0-9]:[0-5][0-9]"><div class="line"><input type="checkbox" id="hideSeconds"><label for="hideSeconds">隱藏秒數（畫面顯示 HH:MM）</label></div><p class="note">例如 01:30:00 代表 1 小時 30 分鐘；隱藏秒數不影響實際倒數精度。變更時間會重設倒數；計時進度不跨重新整理保存。</p>
+ <h3>倒數計時</h3><label for="minutes">倒數時間（時:分:秒）</label><input id="minutes" type="text" inputmode="numeric" value="01:30:00" placeholder="01:30:00" pattern="[0-9]{1,3}:[0-5][0-9]:[0-5][0-9]"><div class="line"><input type="checkbox" id="hideSeconds"><label for="hideSeconds">隱藏秒數（畫面顯示 HH:MM）</label></div><p class="note">例如 01:30:00 代表 1 小時 30 分鐘；隱藏秒數不影響實際倒數精度。變更時間會重設倒數；計時進度不跨重新整理保存。</p>
  <h3>任務說明</h3><label for="taskTitle">視窗標題</label><input type="text" id="taskTitle" value="今日任務" maxlength="80"><label>文字編輯器</label><div class="editor-toolbar"><button type="button" data-cmd="bold">粗體 B</button><button type="button" data-cmd="italic">斜體 I</button><button type="button" data-cmd="foreColor" data-val="#cc262c" style="color:#cc262c">紅字</button><button type="button" data-cmd="foreColor" data-val="#171b20">黑字</button><button type="button" data-cmd="insertUnorderedList">項目符號</button><button type="button" data-cmd="removeFormat">清除格式</button></div><div class="editor" id="editor" contenteditable="true" role="textbox" aria-label="任務文字編輯器" aria-multiline="true"></div><label for="fontSize">文字大小：<span id="fontSizeValue">20</span>px</label><input type="range" id="fontSize" min="12" max="48" value="20"><label for="opacity">白色視窗不透明度：<span id="opacityValue">96</span>%</label><input type="range" id="opacity" min="55" max="100" value="96">
  <h3>背景圖片</h3><label for="backgroundPreset">預設背景</label><select id="backgroundPreset"><option value="navy">深藍漸層</option><option value="paper">米白簡約</option><option value="forest">森林綠</option><option value="sunset">暮光紫橘</option><option value="original">電商活動原版背景（需網路載入）</option><option value="custom">自行上傳的圖片</option></select><label for="bgUpload">上傳背景圖片（JPG / PNG / WebP）</label><input type="file" id="bgUpload" accept="image/jpeg,image/png,image/webp"><p class="note">背景圖片儲存於目前瀏覽器的 IndexedDB；不會上傳 GitHub。建議圖片小於 15MB。</p>
  <h3>連結與 QR Code</h3><label for="qrTitle">顯示標題</label><input type="text" id="qrTitle" value="活動連結"><label for="url">網址</label><input type="url" id="url" placeholder="https://..."><p class="note" id="qrNotice">QR Code 在瀏覽器產生；第一次開啟須載入 QR Code 程式庫。</p>
@@ -23,7 +23,7 @@
 <script>
 (()=>{'use strict';
 const $=id=>document.getElementById(id), STORAGE='classroom-presenter-settings-v1';
-const defaults={minutes:30,durationSeconds:1800,hideSeconds:false,title:'今日任務',html:'<p>請選擇手機或桌機其中一種作為主要設計裝置，在 <span style="color:#cc262c">30 分鐘</span>內完成一張首頁草圖。</p><p>完成後請依照指定連結繳交，<span style="color:#cc262c">最多 3 張圖片</span>。</p>',fontSize:20,opacity:96,bg:'navy',url:'https://forms.gle/GiGRZcWSCXdcbjo19',qrTitle:'活動連結',showTask:true,showTimer:true,showQR:true,positions:{}};
+const defaults={minutes:90,durationSeconds:5400,hideSeconds:false,title:'今日任務',html:'<p>請選擇手機或桌機其中一種作為主要設計裝置，在 <span style="color:#cc262c">30 分鐘</span>內完成一張首頁草圖。</p><p>完成後請依照指定連結繳交，<span style="color:#cc262c">最多 3 張圖片</span>。</p>',fontSize:20,opacity:96,bg:'navy',url:'https://forms.gle/GiGRZcWSCXdcbjo19',qrTitle:'活動連結',showTask:true,showTimer:true,showQR:true,positions:{}};
 let state=structuredClone(defaults),remaining=state.durationSeconds*1000,deadline=null,tick=null,run=false,lastQR='';
 const winIds={task:'taskWin',timer:'timerWin',qr:'qrWin'};
 const bgStyles={navy:'linear-gradient(130deg,#1a2737,#365470 50%,#101e2a)',paper:'linear-gradient(115deg,#e7e3d9,#d0d7d5)',forest:'linear-gradient(135deg,#102d31,#487769,#182f33)',sunset:'linear-gradient(135deg,#382348,#9f6560,#e6ae7a)'};
@@ -54,7 +54,7 @@ function capturePositions(){for(const [k,id] of Object.entries(winIds)){const r=
 function notify(x){$('saveStatus').textContent=x}
 $('saveSettings').onclick=()=>{capturePositions();try{localStorage.setItem(STORAGE,JSON.stringify(state));notify('✓ 已儲存。下次開啟本頁會自動載入這組設定。')}catch(err){notify('儲存失敗：'+err.message)}};
 $('exportSettings').onclick=()=>{capturePositions();const blob=new Blob([JSON.stringify({version:1,...state},null,2)],{type:'application/json'}),a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download='classroom-presenter-settings.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);notify('設定已匯出（不包含上傳的背景圖片）')};$('importSettings').onclick=()=>$('importFile').click();$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const parsed=JSON.parse(await f.text());state=validate(parsed);render();notify('✓ 設定已匯入。若要留到下次啟用，請按「儲存目前設定」。')}catch(err){notify('無法匯入：'+err.message)}e.target.value=''};
-function validate(o){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('設定格式錯誤');const s={...structuredClone(defaults),...o};s.durationSeconds=Math.max(1,Math.min(3599999,Math.round(Number(s.durationSeconds ?? (Number(s.minutes)*60))||1800)));s.minutes=s.durationSeconds/60;s.hideSeconds=Boolean(s.hideSeconds);s.fontSize=Math.max(12,Math.min(48,Number(s.fontSize)||20));s.opacity=Math.max(55,Math.min(100,Number(s.opacity)||96));s.title=String(s.title||'今日任務').slice(0,80);s.html=cleanHTML(String(s.html||''));s.url=String(s.url||'');s.qrTitle=String(s.qrTitle||'活動連結').slice(0,100);s.bg=['navy','paper','forest','sunset','original','custom'].includes(s.bg)?s.bg:'navy';for(const k of ['showTask','showTimer','showQR'])s[k]=Boolean(s[k]);if(!s.positions||typeof s.positions!=='object')s.positions={};for(const k of Object.keys(s.positions)){const p=s.positions[k];if(!winIds[k]||!p||typeof p!=='object'){delete s.positions[k];continue}for(const prop of ['left','top','width','height'])p[prop]=Math.max(0,Math.min(10000,Number(p[prop])||0))}return s}
+function validate(o){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('設定格式錯誤');const s={...structuredClone(defaults),...o};s.durationSeconds=Math.max(1,Math.min(3599999,Math.round(Number(s.durationSeconds ?? (Number(s.minutes)*60))||5400)));s.minutes=s.durationSeconds/60;s.hideSeconds=Boolean(s.hideSeconds);s.fontSize=Math.max(12,Math.min(48,Number(s.fontSize)||20));s.opacity=Math.max(55,Math.min(100,Number(s.opacity)||96));s.title=String(s.title||'今日任務').slice(0,80);s.html=cleanHTML(String(s.html||''));s.url=String(s.url||'');s.qrTitle=String(s.qrTitle||'活動連結').slice(0,100);s.bg=['navy','paper','forest','sunset','original','custom'].includes(s.bg)?s.bg:'navy';for(const k of ['showTask','showTimer','showQR'])s[k]=Boolean(s[k]);if(!s.positions||typeof s.positions!=='object')s.positions={};for(const k of Object.keys(s.positions)){const p=s.positions[k];if(!winIds[k]||!p||typeof p!=='object'){delete s.positions[k];continue}for(const prop of ['left','top','width','height'])p[prop]=Math.max(0,Math.min(10000,Number(p[prop])||0))}return s}
 function resetPositions(){state.positions={};for(const id of Object.values(winIds)){const el=$(id);for(const p of ['left','top','right','bottom','width','height'])el.style[p]=''}notify('視窗位置已恢復；請按儲存以保留下次使用')} $('resetLayout').onclick=resetPositions;
 $('resetAll').onclick=()=>{if(!confirm('恢復初始內容？目前未儲存的修改會消失。'))return;state=structuredClone(defaults);resetPositions();render();notify('已恢復初始內容；按儲存才會覆寫下次啟用的設定')};
 function openSettings(open){$('settings').classList.toggle('open',open);$('backdrop').classList.toggle('open',open)}$('toggleSettings').onclick=()=>openSettings(true);$('closeSettings').onclick=()=>openSettings(false);$('backdrop').onclick=()=>openSettings(false);document.addEventListener('keydown',e=>{if(e.key==='Escape')openSettings(false)});$('fullScreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
@@ -63,9 +63,16 @@ function initDrag(win){const head=win.querySelector('.window-title');let drag=nu
 const sizeBases={};
 function initProportionalWindows(){
   for(const [key,id] of Object.entries(winIds)){
-    const win=$(id),r=win.getBoundingClientRect();
-    // 使用首次載入（或已儲存）的尺寸為最小尺寸，避免縮小後文字變得難以閱讀。
-    const width=Math.round(r.width),height=Math.round(r.height);
+    const win=$(id);
+    // 初始介面尺寸作為下限；舊的已儲存大尺寸不會改變縮放下限。
+    const currentWidth=win.style.width,currentHeight=win.style.height;
+    const initialPosition=state.positions[key];
+    if(initialPosition){win.style.width='';win.style.height=''}
+    const wasHidden=win.hidden;if(wasHidden){win.hidden=false;win.style.visibility='hidden'}
+    const r=win.getBoundingClientRect();
+    const width=Math.max(1,Math.round(r.width)),height=Math.max(1,Math.round(r.height));
+    if(wasHidden){win.hidden=true;win.style.visibility=''}
+    if(initialPosition){win.style.width=currentWidth;win.style.height=currentHeight}
     sizeBases[key]={width,height};
     win.style.minWidth=width+'px';win.style.minHeight=height+'px';
     const children=[...win.children];
