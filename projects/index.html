@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projects — Research & Creative Tools</title>
+<meta name="description" content="研究、教學與創作工具的開發專案索引。">
+<style>
+:root{color-scheme:light;--ink:#202326;--sub:#657079;--line:#e4e7e9;--bg:#fafafa}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans TC","Microsoft JhengHei",sans-serif}
+main{max-width:920px;margin:auto;padding:64px 24px 96px}header{margin-bottom:45px}h1{font-size:clamp(28px,5vw,42px);letter-spacing:-.035em;margin:10px 0}h2{font-size:19px;margin:44px 0 18px}
+p{line-height:1.85;color:var(--sub)}a{color:inherit;text-decoration:none}a:hover{text-decoration:underline}
+.back{font-size:13px;color:var(--sub)}.intro{max-width:620px}.tag{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--sub)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.item{display:block;border:1px solid var(--line);border-radius:8px;background:white;padding:20px;min-height:145px;transition:border-color .2s}
+.item:hover{border-color:#9ca3af;text-decoration:none}.item h3{font-size:17px;margin:6px 0 10px;overflow-wrap:anywhere}.item p{font-size:13px;margin:0;line-height:1.7}
+.meta{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--sub);margin-top:18px}
+small,footer{color:var(--sub)}footer{font-size:12px;border-top:1px solid var(--line);margin-top:60px;padding-top:20px}
+</style>
+</head>
+<body><main>
+<header><a class="back" href="/">← Personal website</a><div class="tag" style="margin-top:30px">Research · Teaching · Creative Coding</div><h1>Projects</h1>
+<p class="intro">研究、教學與創作相關的工具及技術實踐。公開的 GitHub Repository 會自動列在下方；私人專案不會被公開。</p></header>
+<section><h2>Selected practice</h2><div class="grid">
+<a class="item" href="./zotero-codex.html"><span class="tag">Research workflow</span><h3>Codex × Zotero CLI</h3><p>使用自然語言讀取與整理 Zotero 文獻庫的本機工作流程；包含環境設定、驗證與安全邊界。</p><div class="meta"><span>技術實踐</span><span>2026</span></div></a>
+</div></section>
+<section><h2>Public repositories</h2><p style="font-size:13px;margin-top:-9px">資料由 GitHub 公開 API 即時取得。新建立的公開 Repository 會自動出現（更新可能受快取與 API 額度影響）。</p><div id="repos" class="grid" aria-live="polite"><p>載入中…</p></div><p id="status" style="font-size:12px"></p></section>
+<footer>Open projects index · <a href="https://github.com/mirrororc">GitHub</a></footer>
+</main><script>
+const owner="mirrororc";
+const list=document.getElementById("repos"), status=document.getElementById("status");
+function node(tag,text){const e=document.createElement(tag);e.textContent=text;return e}
+fetch("https://api.github.com/users/"+encodeURIComponent(owner)+"/repos?type=owner&sort=updated&per_page=100",{headers:{"Accept":"application/vnd.github+json"}})
+.then(r=>{if(!r.ok)throw Error("GitHub API "+r.status);return r.json()}).then(repos=>{
+list.replaceChildren();
+const shown=repos.filter(r=>!r.private&&!r.archived&&!r.fork&&r.name!==owner+".github.io");
+if(!shown.length){list.append(node("p","目前沒有其他公開 Repository。"));return}
+shown.forEach(r=>{const a=document.createElement("a");a.className="item";a.href=r.html_url;a.target="_blank";a.rel="noopener noreferrer";
+a.append(node("span","GitHub repository"));a.lastChild.className="tag";
+a.append(node("h3",r.name));a.append(node("p",r.description||"查看原始碼、版本與專案說明"));
+const m=node("div",(r.language||"Code")+" · Updated "+new Date(r.pushed_at||r.updated_at).toLocaleDateString("zh-TW"));m.className="meta";a.append(m);list.append(a)});
+}).catch(()=>{list.replaceChildren(node("p","暫時無法取得 GitHub 清單。"));const a=document.createElement("a");a.href="https://github.com/"+owner+"?tab=repositories";a.textContent="到 GitHub 查看公開專案";status.append(a)});
+</script></body></html>
