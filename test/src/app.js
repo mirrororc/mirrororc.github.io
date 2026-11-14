@@ -1,8 +1,8 @@
 (() => {
   'use strict';
   // All rendering lives in this logical space. Device size never changes stored geometry.
-  const SIZE = {width:1000, height:800};
-  const DEFAULTS = Object.freeze({width:14,intensity:65,smoothing:104,duration:3.2,spread:25,
+  const SIZE = {width:1000, height:1250};
+  const DEFAULTS = Object.freeze({width:16,intensity:65,smoothing:104,duration:3.2,spread:25,
     backgroundDim:19,ambient:false,ambientIntensity:0,ambientSpeed:0.1,
     glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true});
   const LIMITS = Object.freeze({strokes:160,points:6000,sampleDistance:3,dpr:2});
@@ -307,18 +307,20 @@
     const bg=c.createLinearGradient(0,0,1080,h);bg.addColorStop(0,'#202032');bg.addColorStop(1,'#11101a');
     c.fillStyle=bg;c.fillRect(0,0,1080,h);
     c.strokeStyle='#ffffff35';c.lineWidth=2;c.strokeRect(48,48,984,h-96);
-    const top=95;
+    const top=80;
     c.fillStyle='#cab8e4';c.font='20px system-ui';c.fillText('44TH NCCU GOLDEN MELODY AWARD',84,top);
-    c.fillStyle='#f8f2ff';c.font='600 64px system-ui';c.fillText('曳：靈魂頻率',80,top+104);
-    c.fillStyle='#c3b6d6';c.font='22px system-ui';c.fillText('PULL A THREAD. RELEASE A FREQUENCY.',84,top+157);
-    const box={x:80,y:330,w:920,h:736};
+    c.fillStyle='#f8f2ff';c.font='600 56px system-ui';c.fillText('曳：靈魂頻率',80,top+68);
+    c.fillStyle='#c3b6d6';c.font='18px system-ui';c.fillText('PULL A THREAD. RELEASE A FREQUENCY.',84,top+104);
+    // Both the drawing surface and this slot are exactly 4:5. Fit the entire artwork.
+    const box={x:150,y:210,w:780,h:975};
     c.drawImage(frozenImage,box.x,box.y,box.w,box.h);
     c.strokeStyle='#ffffff45';c.strokeRect(box.x,box.y,box.w,box.h);
     const base=box.y+box.h;
-    c.fillStyle=COLORS[selected].hex;c.beginPath();c.arc(92,base+76,7,0,Math.PI*2);c.fill();
-    c.fillStyle='#f3eafa';c.font='26px system-ui';c.fillText(COLORS[selected].label,116,base+85);
-    c.fillStyle='#bcb0cb';c.font='24px system-ui';c.fillText('這是我的聲音，也是我的形狀。',84,base+142);
-    c.fillStyle='#ddc7ff';c.font='600 29px system-ui';c.fillText('第44屆政大金旋獎',84,1270);
+    c.fillStyle=COLORS[selected].hex;c.beginPath();c.arc(92,1231,7,0,Math.PI*2);c.fill();
+    c.fillStyle='#f3eafa';c.font='24px system-ui';c.fillText(COLORS[selected].label,116,1240);
+    c.fillStyle='#bcb0cb';c.font='20px system-ui';c.fillText('這是我的聲音，也是我的形狀。',84,1286);
+    c.fillStyle='#ddc7ff';c.font='600 20px system-ui';c.textAlign='right';
+    c.fillText('第44屆政大金旋獎',996,1286);c.textAlign='left';
     return out;
   }
   async function prepareExport() {

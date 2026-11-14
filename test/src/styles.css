@@ -115,7 +115,7 @@ h1 span{
 }
 .canvas-wrap{
   position:relative;
-  aspect-ratio:5/4;
+  aspect-ratio:4/5;
   overflow:hidden;
   border-radius:14px;
   border:1px solid #ffffff26;
@@ -125,6 +125,8 @@ h1 span{
   -webkit-user-select:none
 }
 #art{
+  position:absolute;
+  inset:0;
   width:100%;
   height:100%;
   display:block;
@@ -546,3 +548,4 @@ body:has(dialog[open]){
 .controls { order: -1; padding: 15px 20px; }
 .controls .palette { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .controls .color-choice { min-height: 76px; }
+.canvas-wrap { max-width: 640px; margin-inline: auto; }

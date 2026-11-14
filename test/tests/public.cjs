@@ -6,10 +6,10 @@ const {chromium,firefox,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),report=[];
 const url=process.env.TEST_URL||pathToFileURL(path.join(root,'index.html')).href;
 const variants=[['desktop',1440,1000,false],['tablet',820,1180,true],['phone',390,844,true],['small-phone',320,568,true],['landscape',844,390,true]];
-const selectedVariants=process.env.TEST_PUBLIC_SMOKE==='1'?variants.filter(([device])=>['desktop','phone'].includes(device)):variants;
-const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:'25',backgroundDim:'19',ambientIntensity:'0',ambientSpeed:'0.1',glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true,ambient:false};
+const selectedVariants=(process.env.TEST_PUBLIC_SMOKE==='1'?variants.filter(([device])=>['desktop','phone'].includes(device)):variants).filter(([device])=>!process.env.TEST_DEVICE||process.env.TEST_DEVICE===device);
+const expected={width:'16',intensity:'65',smoothing:'104',duration:'3.2',spread:'25',backgroundDim:'19',ambientIntensity:'0',ambientSpeed:'0.1',glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true,ambient:false};
 (async()=>{
-  for(const [name,engine] of [['chromium',chromium],['firefox',firefox],['webkit',webkit]]){
+  for(const [name,engine] of [['chromium',chromium],['firefox',firefox],['webkit',webkit]].filter(([name])=>!process.env.TEST_ENGINE||process.env.TEST_ENGINE===name)){
     const opts={headless:true};if(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE)opts.executablePath=process.env.CHROMIUM_EXECUTABLE;
     const browser=await engine.launch(opts);
     try{
@@ -26,6 +26,7 @@ const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:
         await page.waitForTimeout(120);assert((await page.locator('#art').evaluate(c=>c.toDataURL()))===baseline,'background must be static');
         await page.locator('[data-key="purple"]').click();await page.locator('#art').scrollIntoViewIfNeeded();
         const r=await page.locator('#art').boundingBox();
+        assert(Math.abs(r.width/r.height-4/5)<.005,'drawing board must be portrait 4:5: '+JSON.stringify({engine:name,device,rect:r,layout:await page.locator('.canvas-wrap').evaluate(el=>({rect:el.getBoundingClientRect().toJSON(),aspect:getComputedStyle(el).aspectRatio}))}));
         if(touch&&name==='chromium'){
           const session=await context.newCDPSession(page),scroll=await page.evaluate(()=>scrollY);
           await session.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:r.x+r.width*.15,y:r.y+r.height*.4}]});
@@ -51,6 +52,8 @@ const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:
         const pending=page.waitForEvent('download');await page.locator('#downloadLink').click();const download=await pending;assert.equal(download.suggestedFilename(),'soul-frequency-feed.png');
         if(name==='chromium'&&device==='desktop')await download.saveAs(path.join(root,'preview-feed.png'));
         await page.locator('#closeBtn').click();await page.setViewportSize({width:height,height:width});
+        const rotated=await page.locator('#art').boundingBox();
+        assert(Math.abs(rotated.width/rotated.height-4/5)<.005,'rotated board must remain portrait 4:5');
         await page.locator('#makeBtn').click();await page.locator('#resultImage').evaluate(i=>i.decode());assert.equal(await page.locator('#resultImage').getAttribute('src'),frozen);
         await page.keyboard.press('Escape');await page.setViewportSize({width,height});
         await page.locator('#freezeBtn').click();await page.locator('#undoBtn').click();assert.equal(await page.locator('#strokeCount').textContent(),'0 道頻率');
@@ -65,6 +68,22 @@ const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:
         await page.locator('#makeBtn').click();await page.waitForFunction(()=>document.getElementById('downloadLink').hasAttribute('href'));
         assert(await page.locator('#shareBtn').isDisabled());assert.match(await page.locator('#shareStatus').textContent(),/下載圖片後開啟 IG/);
         await page.locator('#closeBtn').click();
+        if(name==='chromium'&&device==='desktop'){
+          // Confirm all four corners survive portrait export at the expected positions.
+          await page.locator('#freezeBtn').click();await page.locator('[data-key="blue"]').click();
+          const box=await page.locator('#art').boundingBox();
+          for(const [x,y] of [[.05,.05],[.95,.05],[.05,.95],[.95,.95]])await page.locator('#art').click({position:{x:box.width*x,y:box.height*y}});
+          await page.waitForTimeout(100);await page.locator('#makeBtn').click();await page.waitForFunction(()=>document.getElementById('downloadLink').hasAttribute('href'));
+          await page.locator('#resultImage').evaluate(i=>i.decode());
+          assert(await page.locator('#resultImage').evaluate(img=>{
+            const out=document.createElement('canvas');out.width=1080;out.height=1350;const g=out.getContext('2d');g.drawImage(img,0,0);
+            return [[.05,.05],[.95,.05],[.05,.95],[.95,.95]].every(([x,y])=>{
+              const d=g.getImageData(Math.round(150+780*x)-5,Math.round(210+975*y)-5,11,11).data;
+              for(let i=0;i<d.length;i+=4)if(d[i]+d[i+1]+d[i+2]>680)return true;return false;
+            });
+          }),'portrait export must preserve all four drawing corners without cropping or stretching');
+          await page.locator('#closeBtn').click();
+        }
         if(name==='chromium'&&['desktop','phone'].includes(device))await page.screenshot({path:path.join(root,`public-${device}.png`),fullPage:true});
         assert.deepEqual(errors,[]);report.push({engine:name,device,result:'PASS'});console.log('PASS',name,device);
         await context.close();

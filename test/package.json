@@ -1,7 +1,7 @@
 {
   "name": "soul-frequency-studio",
   "private": true,
-  "version": "3.3.0-live-neon",
+  "version": "3.4.0-portrait",
   "scripts": {"build":"node build.cjs","test":"node tests/pigment.cjs && node tests/neon.cjs && node tests/public.cjs"},
   "devDependencies": {"playwright":"1.62.1"}
 }
