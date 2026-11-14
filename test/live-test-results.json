@@ -1,0 +1,36 @@
+{
+  "url": "https://mirrororc.github.io/test/",
+  "cases": [
+    {
+      "engine": "chromium",
+      "device": "desktop",
+      "result": "PASS"
+    },
+    {
+      "engine": "chromium",
+      "device": "phone",
+      "result": "PASS"
+    },
+    {
+      "engine": "firefox",
+      "device": "desktop",
+      "result": "PASS"
+    },
+    {
+      "engine": "firefox",
+      "device": "phone",
+      "result": "PASS"
+    },
+    {
+      "engine": "webkit",
+      "device": "desktop",
+      "result": "PASS"
+    },
+    {
+      "engine": "webkit",
+      "device": "phone",
+      "result": "PASS"
+    }
+  ],
+  "limits": "Viewport/touch emulation. OS share and real IG completion require physical-device verification."
+}

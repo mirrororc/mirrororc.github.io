@@ -6,13 +6,14 @@ const {chromium,firefox,webkit}=require('playwright');
 const root=path.resolve(__dirname,'..'),report=[];
 const url=process.env.TEST_URL||pathToFileURL(path.join(root,'index.html')).href;
 const variants=[['desktop',1440,1000,false],['tablet',820,1180,true],['phone',390,844,true],['small-phone',320,568,true],['landscape',844,390,true]];
+const selectedVariants=process.env.TEST_PUBLIC_SMOKE==='1'?variants.filter(([device])=>['desktop','phone'].includes(device)):variants;
 const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:'25',backgroundDim:'19',ambientIntensity:'0',ambientSpeed:'0.1',glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true,ambient:false};
 (async()=>{
   for(const [name,engine] of [['chromium',chromium],['firefox',firefox],['webkit',webkit]]){
     const opts={headless:true};if(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE)opts.executablePath=process.env.CHROMIUM_EXECUTABLE;
     const browser=await engine.launch(opts);
     try{
-      for(const [device,width,height,touch] of variants){
+      for(const [device,width,height,touch] of selectedVariants){
         const context=await browser.newContext({viewport:{width,height},hasTouch:touch,deviceScaleFactor:2,acceptDownloads:true});
         const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
         const response=await page.goto(url);if(url.startsWith('https:'))assert.equal(response.status(),200);
@@ -70,5 +71,5 @@ const expected={width:'14',intensity:'65',smoothing:'104',duration:'3.2',spread:
       }
     }finally{await browser.close();}
   }
-  fs.writeFileSync(path.join(root,url.startsWith('https:')?'live-test-results.json':'test-results.json'),JSON.stringify({url,cases:report,limits:'Viewport/touch emulation. OS share and real IG completion require physical-device verification.'},null,2));
+  fs.writeFileSync(path.join(root,url.startsWith('https:')?'live-test-results.json':'test-results.json'),JSON.stringify({url:url.startsWith('https:')?url:'local index.html',cases:report,limits:'Viewport/touch emulation. OS share and real IG completion require physical-device verification.'},null,2));
 })().catch(e=>{console.error(e);process.exitCode=1;});
