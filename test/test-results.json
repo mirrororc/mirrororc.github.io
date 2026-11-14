@@ -8,72 +8,7 @@
     },
     {
       "engine": "chromium",
-      "device": "tablet",
-      "result": "PASS"
-    },
-    {
-      "engine": "chromium",
       "device": "phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "chromium",
-      "device": "small-phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "chromium",
-      "device": "landscape",
-      "result": "PASS"
-    },
-    {
-      "engine": "firefox",
-      "device": "desktop",
-      "result": "PASS"
-    },
-    {
-      "engine": "firefox",
-      "device": "tablet",
-      "result": "PASS"
-    },
-    {
-      "engine": "firefox",
-      "device": "phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "firefox",
-      "device": "small-phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "firefox",
-      "device": "landscape",
-      "result": "PASS"
-    },
-    {
-      "engine": "webkit",
-      "device": "desktop",
-      "result": "PASS"
-    },
-    {
-      "engine": "webkit",
-      "device": "tablet",
-      "result": "PASS"
-    },
-    {
-      "engine": "webkit",
-      "device": "phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "webkit",
-      "device": "small-phone",
-      "result": "PASS"
-    },
-    {
-      "engine": "webkit",
-      "device": "landscape",
       "result": "PASS"
     }
   ],

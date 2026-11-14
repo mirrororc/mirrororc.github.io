@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..'),report=[];
 const url=process.env.TEST_URL||pathToFileURL(path.join(root,'index.html')).href;
 const variants=[['desktop',1440,1000,false],['tablet',820,1180,true],['phone',390,844,true],['small-phone',320,568,true],['landscape',844,390,true]];
 const selectedVariants=(process.env.TEST_PUBLIC_SMOKE==='1'?variants.filter(([device])=>['desktop','phone'].includes(device)):variants).filter(([device])=>!process.env.TEST_DEVICE||process.env.TEST_DEVICE===device);
-const expected={width:'16',intensity:'65',smoothing:'104',duration:'3.2',spread:'25',backgroundDim:'19',ambientIntensity:'0',ambientSpeed:'0.1',glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true,ambient:false};
+const expected={width:'22',intensity:'65',smoothing:'104',duration:'3.2',spread:'25',backgroundDim:'19',ambientIntensity:'0',ambientSpeed:'0.1',glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true,ambient:false};
 (async()=>{
   for(const [name,engine] of [['chromium',chromium],['firefox',firefox],['webkit',webkit]].filter(([name])=>!process.env.TEST_ENGINE||process.env.TEST_ENGINE===name)){
     const opts={headless:true};if(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE)opts.executablePath=process.env.CHROMIUM_EXECUTABLE;

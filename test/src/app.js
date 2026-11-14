@@ -2,13 +2,13 @@
   'use strict';
   // All rendering lives in this logical space. Device size never changes stored geometry.
   const SIZE = {width:1000, height:1250};
-  const DEFAULTS = Object.freeze({width:16,intensity:65,smoothing:104,duration:3.2,spread:25,
+  const DEFAULTS = Object.freeze({width:22,intensity:65,smoothing:104,duration:3.2,spread:25,
     backgroundDim:19,ambient:false,ambientIntensity:0,ambientSpeed:0.1,
     glow:true,bloom:true,filament:true,arrow:false,additive:true,poster:true});
   const LIMITS = Object.freeze({strokes:160,points:6000,sampleDistance:3,dpr:2});
   // Pigment is composited over the background, and only stroke intersections brighten.
   // These controls stay in source; the public effect panel remains hidden.
-  const WATERCOLOR = Object.freeze({enabled:true,resolution:0.25,opacity:0.95,spacing:7,
+  const WATERCOLOR = Object.freeze({enabled:true,resolution:0.25,opacity:1.08,spacing:7,
     initialSigma:4,spreadScale:2.4,coreOpacity:0.96,filamentWhiteness:0.96,
     filamentOpacity:0.98,filamentWidth:0.20});
   const COLORS = {

@@ -2,96 +2,96 @@
   {
     "engine": "chromium",
     "early": {
-      "area": 21064,
+      "area": 19952,
       "white": 312,
-      "body": 8717,
-      "oldWidth": 76,
+      "body": 9271,
+      "oldWidth": 73,
       "freshWidth": 0
     },
     "held": {
-      "area": 44772,
+      "area": 44869,
       "white": 312,
-      "body": 15486,
-      "oldWidth": 140,
+      "body": 17392,
+      "oldWidth": 142,
       "freshWidth": 0
     },
     "drawing": {
-      "area": 85634,
-      "white": 880,
-      "body": 39533,
-      "oldWidth": 152,
-      "freshWidth": 83
+      "area": 81541,
+      "white": 884,
+      "body": 42634,
+      "oldWidth": 154,
+      "freshWidth": 69
     },
     "released": {
-      "area": 95648,
-      "white": 880,
-      "body": 44133,
-      "oldWidth": 152,
-      "freshWidth": 104
+      "area": 91509,
+      "white": 884,
+      "body": 46264,
+      "oldWidth": 154,
+      "freshWidth": 93
     },
     "result": "PASS"
   },
   {
     "engine": "firefox",
     "early": {
-      "area": 24067,
-      "white": 156,
-      "body": 10117,
-      "oldWidth": 89,
+      "area": 24204,
+      "white": 317,
+      "body": 10749,
+      "oldWidth": 88,
       "freshWidth": 0
     },
     "held": {
-      "area": 62475,
-      "white": 156,
-      "body": 21784,
-      "oldWidth": 189,
+      "area": 63293,
+      "white": 317,
+      "body": 23993,
+      "oldWidth": 188,
       "freshWidth": 0
     },
     "drawing": {
-      "area": 113789,
-      "white": 438,
-      "body": 53652,
-      "oldWidth": 209,
-      "freshWidth": 102
+      "area": 101415,
+      "white": 865,
+      "body": 50325,
+      "oldWidth": 203,
+      "freshWidth": 73
     },
     "released": {
-      "area": 134615,
-      "white": 438,
-      "body": 62834,
-      "oldWidth": 212,
-      "freshWidth": 148
+      "area": 115461,
+      "white": 865,
+      "body": 57196,
+      "oldWidth": 208,
+      "freshWidth": 109
     },
     "result": "PASS"
   },
   {
     "engine": "webkit",
     "early": {
-      "area": 6841,
-      "white": 41,
-      "body": 1985,
+      "area": 5279,
+      "white": 38,
+      "body": 1781,
       "oldWidth": 0,
       "freshWidth": 0
     },
     "held": {
-      "area": 29232,
-      "white": 41,
-      "body": 2047,
-      "oldWidth": 145,
+      "area": 27828,
+      "white": 38,
+      "body": 2903,
+      "oldWidth": 133,
       "freshWidth": 0
     },
     "drawing": {
-      "area": 92526,
-      "white": 431,
-      "body": 40217,
-      "oldWidth": 196,
-      "freshWidth": 68
+      "area": 90198,
+      "white": 432,
+      "body": 40587,
+      "oldWidth": 192,
+      "freshWidth": 65
     },
     "released": {
-      "area": 139536,
-      "white": 431,
-      "body": 61656,
-      "oldWidth": 212,
-      "freshWidth": 161
+      "area": 130767,
+      "white": 432,
+      "body": 59857,
+      "oldWidth": 207,
+      "freshWidth": 148
     },
     "result": "PASS"
   }
