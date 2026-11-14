@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101018">
+<title>曳：靈魂頻率渲染器｜第44屆政大金旋獎</title>
+<meta name="description" content="用手指畫出你的靈魂頻率，凍結作品、儲存 4:5 創作卡片並分享到 Instagram。">
+<style>/* STYLES */</style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div class="topline"><span>44TH NCCU GOLDEN MELODY</span><span class="live">CREATE YOUR FREQUENCY</span></div>
+    <h1>曳<span>靈魂頻率渲染器</span></h1>
+    <p class="intro">選一種聲音，用手指曳出你的頻率。讓光交織，讓顏色慢慢流動。</p>
+  </header>
+  <div class="studio">
+    <section class="workspace" aria-label="繪圖工作區">
+      <div class="section-head"><strong>01 / LET YOUR SOUL FLOW</strong><span id="stateLabel">自由繪製</span></div>
+      <div class="canvas-wrap"><canvas id="art" aria-label="使用手指、觸控筆或滑鼠繪圖"></canvas><span class="canvas-tag" id="canvasTag">DRAW YOUR FREQUENCY</span></div>
+      <div class="under-canvas"><span id="noteText">木吉他 × 深夜獨處的沉澱</span><span id="strokeCount">0 道頻率</span></div>
+      <div class="actions">
+        <button id="undoBtn" disabled>↶ 復原</button>
+        <button id="clearBtn" disabled>清除</button>
+        <button id="freezeBtn" aria-pressed="false">凍結畫面</button>
+        <button id="makeBtn" class="primary">完成／分享 IG ↗</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite">在畫布內自由繪製；畫布外仍可正常捲動。</p>
+    </section>
+    <aside class="controls" aria-label="聲音與效果設定">
+      <fieldset id="settings">
+        <legend class="section-head">PICK YOUR FREQUENCY / 選擇聲音顏色</legend>
+        <div class="palette">
+          <button class="color-choice active" data-key="blue" style="--c:#62b8ff" aria-pressed="true"><i></i><b>靜謐深夜</b><small>BLUE / 木吉他</small></button>
+          <button class="color-choice" data-key="coral" style="--c:#ff765f" aria-pressed="false"><i></i><b>熱烈碰撞</b><small>RED / 電吉他</small></button>
+          <button class="color-choice" data-key="purple" style="--c:#c18bff" aria-pressed="false"><i></i><b>迷幻流動</b><small>PURPLE / 合成器</small></button>
+          <button class="color-choice" data-key="green" style="--c:#8ce5a4" aria-pressed="false"><i></i><b>自由生長</b><small>GREEN / 鼓點</small></button>
+        </div>
+        <details id="effectControls" hidden>
+          <summary>調整光的性格 <span>＋</span></summary>
+          <div class="effect-fields">
+          <label class="range">線條寬度 <output for="width">14</output><input id="width" data-option="width" type="range" min="3" max="24" step="1" value="14"></label>
+          <label class="range">色彩濃度 <output for="intensity">65%</output><input id="intensity" data-option="intensity" type="range" min="15" max="100" value="65"></label>
+          <label class="range">曲線平滑強度 <output for="smoothing">104</output><input id="smoothing" data-option="smoothing" type="range" min="0" max="300" step="1" value="104"></label>
+          <label class="range">暈染時間 <output for="duration">3.2 秒</output><input id="duration" data-option="duration" type="range" min="0.2" max="4" step="0.1" value="3.2"></label>
+          <label class="range">暈染範圍 <output for="spread">25</output><input id="spread" data-option="spread" type="range" min="8" max="70" value="25"></label>
+          <label class="range">背景壓暗遮罩 <output for="backgroundDim">19%</output><input id="backgroundDim" data-option="backgroundDim" type="range" min="0" max="100" step="1" value="19"></label>
+          <label class="range">背景燈光強度 <output for="ambientIntensity">0%</output><input id="ambientIntensity" data-option="ambientIntensity" type="range" min="0" max="100" step="1" value="0"></label>
+          <label class="range">背景動態速度 <output for="ambientSpeed">0.1×</output><input id="ambientSpeed" data-option="ambientSpeed" type="range" min="0.1" max="2" step="0.1" value="0.1"></label>
+          <div class="toggles">
+            <label><input type="checkbox" data-option="glow" checked> 柔光</label>
+            <label><input type="checkbox" data-option="bloom" checked> 緩速暈染</label>
+            <label><input type="checkbox" data-option="filament" checked> 中心光絲</label>
+            <label><input type="checkbox" data-option="arrow"> 終點箭頭</label>
+            <label><input type="checkbox" data-option="additive" checked> 交疊增亮</label>
+            <label><input type="checkbox" data-option="poster" checked> 活動底圖</label>
+            <label><input type="checkbox" data-option="ambient"> 迷離背景動態</label>
+          </div>
+          <button id="resetBtn" class="text-button">還原效果預設值</button>
+          <p class="help">平滑強度 0–300，從下一筆生效；高值增加跟手延遲與轉彎半徑，線尾保留平滑後的位置。遮罩 0% 無壓暗、100% 純黑，只影響背景。動態為緩慢柔光游移；系統「減少動態效果」會停用動畫。</p>
+          </div>
+        </details>
+      </fieldset>
+    </aside>
+  </div>
+  <footer>第44屆政大金旋獎 <span>MAKE YOUR FREQUENCY VISIBLE</span></footer>
+</main>
+<dialog id="exportDialog" aria-labelledby="exportTitle">
+  <div class="modal-top"><h2 id="exportTitle">留下這道頻率</h2><button id="closeBtn" aria-label="關閉匯出視窗">×</button></div>
+  <p class="help">Instagram 貼文 · 4:5 · 1080 × 1350</p>
+  <img id="resultImage" alt="已凍結的頻率創作卡片預覽">
+  <div class="export-actions"><a id="downloadLink" class="primary" download="soul-frequency-feed.png">下載圖片</a><button id="shareBtn">分享圖片</button></div>
+  <p id="shareStatus" class="help" role="status">儲存圖片後，開啟 IG 選取圖片發布；手機也可長按圖片儲存。</p>
+</dialog>
+<script>/* SMOOTHING */
+/* APP */</script>
+</body></html>

@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = __dirname;
+const image='data:image/jpeg;base64,'+fs.readFileSync(path.join(root,'assets/campaign.jpg')).toString('base64');
+const template=fs.readFileSync(path.join(root,'src/index.html'),'utf8');
+const css=fs.readFileSync(path.join(root,'src/styles.css'),'utf8');
+const js=fs.readFileSync(path.join(root,'src/app.js'),'utf8');
+const smoothing=fs.readFileSync(path.join(root,'src/smoothing.js'),'utf8');
+fs.writeFileSync(path.join(root,'index.html'),template.replace('/* STYLES */',()=>css).replace('/* SMOOTHING */',()=>smoothing).replace('/* APP */',()=>js.replace('"__POSTER__"',JSON.stringify(image))));
+console.log('Built index.html');

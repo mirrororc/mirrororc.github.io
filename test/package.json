@@ -1,0 +1,7 @@
+{
+  "name": "soul-frequency-studio",
+  "private": true,
+  "version": "3.1.0-public-test",
+  "scripts": {"build":"node build.cjs","test":"node tests/public.cjs"},
+  "devDependencies": {"playwright":"1.62.1"}
+}
