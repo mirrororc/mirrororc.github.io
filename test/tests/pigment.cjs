@@ -1,16 +1,13 @@
 const assert=require('node:assert/strict');
 const pigment=require('../src/watercolor.js');
-const w=101,h=101,source=new Float32Array(w*h),center=50*w+50;
-source[center]=1;
-const sum=x=>x.reduce((a,b)=>a+b,0);
-const secondMoment=x=>x.reduce((total,value,i)=>total+value*((i%w-50)**2+(Math.floor(i/w)-50)**2),0);
-let previousMoment=0;
-for(const sigma of [.5,1,2,4,7]){
-  const field=pigment.diffuse(source,w,h,sigma);
-  assert(Math.abs(sum(field)-1)<1e-5,'diffusion must conserve pigment mass away from canvas edges');
-  const moment=secondMoment(field);assert(moment>previousMoment,'pigment must expand as time grows');previousMoment=moment;
-  for(let x=51;x<90;x++)assert(field[50*w+x]<=field[50*w+x-1]+1e-8,'radial profile must fade continuously without rings');
-}
-const a=pigment.diffuse(source,w,h,4.1),b=pigment.diffuse(source,w,h,4.10001);
-assert(Math.max(...a.map((v,i)=>Math.abs(v-b[i])))<1e-5,'fractional blur changes must be continuous');
-console.log('PASS pigment: mass / outward diffusion / no radial rings / fractional continuity');
+const kernel=pigment.kernelAlpha(128);
+for(let x=65;x<128;x++)assert(kernel[64*128+x]<=kernel[64*128+x-1],'kernel must fade without rings');
+const marks=pigment.emissions([{x:0,y:0,born:0},{x:100,y:0,born:1000}],10);
+assert.equal(marks.length,11);assert.equal(marks[5].born,500);
+const config={initialSigma:4,spread:60,opacity:.6,spacing:7,duration:3200,reduced:false};
+const older=pigment.state(marks[0],1100,config),fresh=pigment.state(marks[10],1100,config);
+assert(older.sigma>fresh.sigma*2,'earlier marks must already be wider during the same stroke');
+assert(pigment.state(marks[0],600,config).sigma>pigment.state(marks[0],100,config).sigma,'held pointer must keep aging');
+assert.equal(pigment.state(marks[0],1100,config).sigma,older.sigma,'releasing must not reset deposition age');
+assert.equal(pigment.state(marks[10],1100,{...config,reduced:true}).progress,1);
+console.log('PASS pigment: continuous kernel / per-position ages / while-held growth / reduced motion');

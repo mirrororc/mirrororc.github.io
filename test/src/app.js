@@ -8,8 +8,9 @@
   const LIMITS = Object.freeze({strokes:160,points:6000,sampleDistance:3,dpr:2});
   // Pigment is composited over the background, and only stroke intersections brighten.
   // These controls stay in source; the public effect panel remains hidden.
-  const WATERCOLOR = Object.freeze({enabled:true,resolution:0.25,opacity:0.70,
-    initialSigma:2.5,spreadScale:1.9,coreOpacity:0.96,filamentWhiteness:0.08});
+  const WATERCOLOR = Object.freeze({enabled:true,resolution:0.25,opacity:0.95,spacing:7,
+    initialSigma:4,spreadScale:2.4,coreOpacity:0.96,filamentWhiteness:0.96,
+    filamentOpacity:0.98,filamentWidth:0.20});
   const COLORS = {
     blue:{hex:'#168aff',label:'木吉他 × 深夜獨處的沉澱'},
     coral:{hex:'#ff4938',label:'電吉他 × 現場的熱烈碰撞'},
@@ -23,12 +24,19 @@
   const settled = layer(), settledCtx = settled.getContext('2d');
   const ink = layer(), inkCtx = ink.getContext('2d');
   const foreground = layer(), foregroundCtx = foreground.getContext('2d');
+  const kernel = Object.assign(document.createElement('canvas'), {width:128,height:128});
+  const kernelCtx = kernel.getContext('2d'), kernelImage = kernelCtx.createImageData(128,128);
+  const kernelAlpha = FrequencyPigment.kernelAlpha(128);
+  for(let i=0;i<kernelAlpha.length;i++) {
+    kernelImage.data[i*4]=kernelImage.data[i*4+1]=kernelImage.data[i*4+2]=255;
+    kernelImage.data[i*4+3]=kernelAlpha[i];
+  }
+  kernelCtx.putImageData(kernelImage,0,0);
   const poster = new Image();
   let options = {...DEFAULTS}, selected='blue', strokes=[], current=null;
   let activePointer=null, frozen=false, freezeAt=0, frozenImage=null;
   let clock=0, lastFrame=null, lastPaint=-Infinity, frameId=0, baked=0, exportFile=null, exportURL=null, exportGeneration=0;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-  const easeOut = t => 1-Math.pow(1-Math.min(1,Math.max(0,t)),3);
   const mix = (a,b,t) => ({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
   const distance = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
   const say = text => { $('status').textContent=text; };
@@ -48,7 +56,8 @@
     return path;
   }
   function newStroke(p) {
-    return {key:selected,points:[p],lastRaw:p,filtered:p,path:buildPath([p]),born:clock,ended:null};
+    const start={...p,born:clock};
+    return {key:selected,points:[start],lastRaw:p,filtered:p,path:buildPath([start]),born:clock,lastWetBorn:clock,ended:null};
   }
   function sample(p,force=false) {
     if(!current) return;
@@ -62,7 +71,10 @@
     }
     current.filtered=filtered; current.lastRaw=p;
     if(!force && distance(last,filtered)<LIMITS.sampleDistance) return;
-    if(distance(last,filtered)>.01) current.points.push({...filtered});
+    if(distance(last,filtered)>.01) {
+      current.points.push({...filtered,born:clock});
+      current.lastWetBorn=clock;
+    }
     current.path=buildPath(current.points);
     requestRender();
   }
@@ -105,71 +117,45 @@
     const scale = WATERCOLOR.resolution;
     const width = Math.round(SIZE.width * scale), height = Math.round(SIZE.height * scale);
     const surface = Object.assign(document.createElement('canvas'), {width, height});
-    const c = surface.getContext('2d', {willReadFrequently:true});
-    c.scale(scale, scale); c.strokeStyle = '#fff'; c.fillStyle = '#fff';
-    c.lineWidth = options.width * 1.25; c.lineCap = 'round'; c.lineJoin = 'round';
-    c.stroke(s.path);
-    // Irregular deposits are seeded by distance along the path, never frame randomness.
-    let travelled = 0, next = 0;
-    const deposit = (p, d) => {
-      const angle = Math.sin(d * .043 + s.points[0].x) * Math.PI;
-      const radius = options.width * (.52 + .22 * Math.sin(d * .071 + s.points[0].y));
-      const x = p.x + Math.sin(d * .083) * options.width * .3;
-      const y = p.y + Math.cos(d * .057) * options.width * .28;
-      c.beginPath(); c.ellipse(x, y, radius * 1.25, radius * .72, angle, 0, Math.PI * 2); c.fill();
-    };
-    deposit(s.points[0], 0);
-    for (let i = 1; i < s.points.length; i++) {
-      const a = s.points[i - 1], b = s.points[i], span = distance(a, b);
-      while (next <= travelled + span) {
-        deposit(mix(a, b, span ? Math.max(0, (next - travelled) / span) : 0), next);
-        next += 9;
-      }
-      travelled += span;
-    }
-    const pixels = c.getImageData(0, 0, width, height).data;
-    const alpha = new Float32Array(width * height);
-    for (let i = 0; i < alpha.length; i++) alpha[i] = pixels[i * 4 + 3] / 255;
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    s.wetField = {key, width, height, surface, c, alpha, cache:{}, image:c.createImageData(width, height)};
+    const c = surface.getContext('2d');
+    s.wetField = {key,width,height,surface,c,marks:FrequencyPigment.emissions(s.points,WATERCOLOR.spacing)};
     return s.wetField;
   }
-  function drawPigment(s, progress, color, opacity) {
+  function drawPigment(s, time, color, opacity) {
     const field = wetField(s);
-    const sigma = Math.sqrt(WATERCOLOR.initialSigma ** 2 +
-      (options.spread * WATERCOLOR.spreadScale) ** 2 * progress);
-    const alpha = FrequencyPigment.diffuse(field.alpha, field.width, field.height,
-      sigma * WATERCOLOR.resolution, field.cache);
-    const rgb = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16));
-    // Modest density compensation retains color while the wet pigment spreads.
-    const density = WATERCOLOR.opacity * opacity * Math.sqrt(sigma / WATERCOLOR.initialSigma);
-    const data = field.image.data;
-    for (let i = 0; i < alpha.length; i++) {
-      const j = i * 4;
-      data[j] = rgb[0]; data[j + 1] = rgb[1]; data[j + 2] = rgb[2];
-      const noise = ((i * 73 + Math.floor(i / field.width) * 31) % 101) / 101 - .5;
-      data[j + 3] = Math.max(0, Math.min(220, alpha[i] * density * 255 + noise));
+    const c=field.c,scale=WATERCOLOR.resolution;
+    c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-over';
+    c.clearRect(0,0,field.width,field.height);
+    const config={initialSigma:WATERCOLOR.initialSigma,spread:options.spread*WATERCOLOR.spreadScale,
+      opacity:WATERCOLOR.opacity*opacity,spacing:WATERCOLOR.spacing,
+      duration:options.duration*1000,reduced:reducedMotion.matches};
+    for(const mark of field.marks) {
+      const state=FrequencyPigment.state(mark,time,config);
+      const radius=state.sigma*3*scale,cos=Math.cos(state.angle),sin=Math.sin(state.angle);
+      c.setTransform(cos*radius*state.stretch,sin*radius*state.stretch,
+        -sin*radius/state.stretch,cos*radius/state.stretch,
+        (mark.x+state.dx)*scale,(mark.y+state.dy)*scale);
+      c.globalAlpha=state.opacity;c.drawImage(kernel,-1,-1,2,2);
     }
-    field.c.putImageData(field.image, 0, 0);
+    c.setTransform(1,0,0,1,0,0);c.globalAlpha=1;c.globalCompositeOperation='source-in';
+    c.fillStyle=color;c.fillRect(0,0,field.width,field.height);c.globalCompositeOperation='source-over';
     inkCtx.drawImage(field.surface, 0, 0, SIZE.width, SIZE.height);
   }
-  // A single continuous pigment field replaces the previous nested wide-line passes.
-  // The bright filament is tinted; there is no opaque white center line.
+  // Neon: a near-white thin tube, a saturated color body, and continuously aging emissions.
   function drawStroke(target,s,time) {
-    const elapsed=s.ended===null?0:Math.max(0,time-s.ended);
-    const progress=(!options.bloom || reducedMotion.matches)?1:easeOut(elapsed/(options.duration*1000));
     const color=COLORS[s.key].hex, opacity=options.intensity/100, path=s.path;
     inkCtx.clearRect(0,0,SIZE.width,SIZE.height);
-    if(WATERCOLOR.enabled && options.bloom) drawPigment(s, progress, color, opacity);
+    if(WATERCOLOR.enabled && options.bloom) drawPigment(s,time,color,opacity);
     inkCtx.save(); inkCtx.lineCap='round'; inkCtx.lineJoin='round'; inkCtx.strokeStyle=color;
-    const pass=(width,alpha,blur=0,style=color)=>{
-      inkCtx.lineWidth=width; inkCtx.globalAlpha=alpha*opacity;
+    const pass=(width,alpha,blur=0,style=color,absolute=false)=>{
+      inkCtx.lineWidth=width; inkCtx.globalAlpha=absolute?alpha:alpha*opacity;
       inkCtx.shadowColor=color; inkCtx.shadowBlur=blur; inkCtx.strokeStyle=style; inkCtx.stroke(path);
     };
     pass(options.width,WATERCOLOR.coreOpacity,options.glow?9:0);
     if(options.filament) {
       const tint = [1,3,5].map(i => {const v=parseInt(color.slice(i,i+2),16);return Math.round(v+(255-v)*WATERCOLOR.filamentWhiteness);});
-      pass(Math.max(1,options.width*.18),.88,options.glow?3:0,`rgb(${tint.join(',')})`);
+      pass(Math.max(2.4,options.width*WATERCOLOR.filamentWidth),WATERCOLOR.filamentOpacity,
+        options.glow?6:0,`rgb(${tint.join(',')})`,true);
     }
     if(options.arrow && s.points.length>1) {
       const p=s.points[s.points.length-1], prev=s.points[Math.max(0,s.points.length-4)];
@@ -182,7 +168,7 @@
     target.drawImage(ink,0,0); target.restore();
   }
   function invalidate() { baked=0; settledCtx.clearRect(0,0,SIZE.width,SIZE.height); }
-  function mature(s) { return s.ended!==null && (!options.bloom || reducedMotion.matches || clock-s.ended>=options.duration*1000); }
+  function mature(s) { return s.ended!==null && (!options.bloom || reducedMotion.matches || clock-s.lastWetBorn>=options.duration*1000); }
   function backgroundMoving() { return options.ambient && options.ambientIntensity>0 && !reducedMotion.matches; }
   function drawBackground() {
     ctx.fillStyle='#141622'; ctx.fillRect(0,0,SIZE.width,SIZE.height);
@@ -237,9 +223,10 @@
     if(lastFrame!==null) clock+=Math.max(0,now-lastFrame);
     lastFrame=now;
     const blooming=strokes.some(s=>!mature(s));
+    const wetPointer=current && WATERCOLOR.enabled && options.bloom && !reducedMotion.matches && clock-current.lastWetBorn<options.duration*1000;
     // Background-only motion is capped at 30fps; live input and ink keep full refresh.
     if(current || blooming || now-lastPaint>=1000/30 || !backgroundMoving()) {render();lastPaint=now;}
-    if(blooming || backgroundMoving()) frameId=requestAnimationFrame(tick);
+    if(blooming || wetPointer || backgroundMoving()) frameId=requestAnimationFrame(tick);
     else lastFrame=null;
   }
   function requestRender() {
